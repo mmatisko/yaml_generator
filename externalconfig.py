@@ -21,5 +21,5 @@ class ExternalConfig(object):
         return self.yml_object.get_path()
 
     # just for testing, will be deleted
-    def get_yaml_object(self) -> object:
+    def get_yaml_object(self) -> YamlIo:
         return self.yml_object

@@ -4,25 +4,40 @@ from logger import Logger
 from network import Network
 from portmapping import PortMapping
 
-class tests(object):
+
+class Tests(object):
     def __init__(self):
         print("Initializing tests...")
 
-    def arg_parse_test(self):
+    @staticmethod
+    def arg_parse_generate_test():
         print("Arg Parse test started!")
-        args = "-n 192.168.10.0/24 -p 80,443-11180,11443 -c config.yml -s 1 -h 1".split()
+        args = "-G -n 192.168.10.0/24 -p 80,443-11180,11443 -c config.yml -s 1 -h 1".split()
         arg_parser = ArgParse()
-        network, ports, config, subnets, hosts = arg_parser.parse(args)
+        params = arg_parser.parse(args)
 
-        assert network == "192.168.10.0/24", ("Invalid IP:" + network)
-        assert ports == "80,443-11180,11443", ("Invalid ports:" + ports)
-        assert config == "config.yml", ("Invalid config: " + config)
-        assert subnets == "1", ("Invalid subnet count:" + subnets)
-        assert hosts == "1", ("Invalid hosts count:" + hosts)
-        
-        print("Arg Parse test passed!")
+        assert params['mode'] == "generate", ("Invalid mode: " + params['mode'])
+        assert params['network'] == "192.168.10.0/24", ("Invalid IP:" + params['network'])
+        assert params['ports'] == "80,443-11180,11443", ("Invalid ports:" + params['ports'])
+        assert params['config'] == "config.yml", ("Invalid config: " + params['config'])
+        assert params['subnets'] == "1", ("Invalid subnet count:" + params['subnets'])
+        assert params['hosts'] == "1", ("Invalid hosts count:" + params['hosts'])
 
-    def logger_test(self):
+        print("Arg Parse generate mode test passed!")
+
+    @staticmethod
+    def arg_parse_replace_test():
+        print("Arg Parse test started!")
+        args = "-R -k mysql_port -v 3336".split()
+        arg_parser = ArgParse()
+        params = arg_parser.parse(args)
+
+        assert params['mode'] == "replace", ("Invalid mode: " + params['mode'])
+        assert params['key'] == "mysql_port", ("Invalid key: " + params['key'])
+        assert params['value'] == "3336", ("Invalid value: " + params['value'])
+
+    @staticmethod
+    def logger_test():
         print("Logger test started!")
 
         loggerman = Logger()
@@ -33,19 +48,21 @@ class tests(object):
 
         print("Logger test passed!")
 
-    def network_test(self):
+    @staticmethod
+    def network_test():
         print("Network test started!")
 
-        network_tester = Network("192.168.10.0/24")
+        network_tester = Network("192.168.10.128/25")
         assert network_tester.is_initialized()
         random_ip = network_tester.get_random_ip()
-        assert len(random_ip) == 1
+        assert len(random_ip) == 14
         random_ip = network_tester.get_random_ips(5)
         print(random_ip)
         assert len(network_tester.get_random_ips(5)) == 5
-        assert network_tester.is_address_in_network("192.168.10.20")
-        assert network_tester.are_addresses_in_network(["192.168.10.1","192.168.10.2"])
-        assert not network_tester.is_address_in_network("192.168.15.15")
+        assert network_tester.is_address_in_network("192.168.10.220")
+        assert network_tester.are_addresses_in_network(["192.168.10.221", "192.168.10.254"])
+        assert not network_tester.is_address_in_network("192.168.10.15")
+        assert not network_tester.is_address_in_network("172.16.150.220")
 
         network_tester = Network("192.168.256.255/32")
         assert not network_tester.is_initialized()
@@ -58,7 +75,8 @@ class tests(object):
 
         print("Network test passed!")
 
-    def external_config_test(self):
+    @staticmethod
+    def external_config_test():
         print("External config test started!")
 
         external_cfg = ExternalConfig("config.yml")
@@ -74,7 +92,8 @@ class tests(object):
 
         print("External config test passed!")
 
-    def port_mapping_test(self):
+    @staticmethod
+    def port_mapping_test():
         print("Port mapping test started!")
 
         port_mapping = PortMapping('80,443/11180,11443')
@@ -84,10 +103,18 @@ class tests(object):
 
         print("Port mapping test passed!")
 
-tester = tests()
-tester.arg_parse_test()
-tester.logger_test()
-tester.network_test()
-tester.external_config_test()
-tester.port_mapping_test()
+
+# run all tests:
+tests = Tests()
+functions = [func for func in dir(tests) if callable(getattr(tests, func)) and not func.startswith('__')]
+for func in functions:
+    callable_func = getattr(tests, func)
+    callable_func()
+
+
+# Tests.arg_parse_generate_test()
+# Tests.logger_test()
+# Tests.network_test()
+# Tests.external_config_test()
+# Tests.port_mapping_test()
 

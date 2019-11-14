@@ -16,7 +16,8 @@ class Network(object):
         return not self.network_ip == ''
 
     def get_random_ip(self) -> str:
-        return str(self.get_random_ips(1))
+        random_ip = str(self.get_random_ips(1))
+        return random_ip[2:len(random_ip)-2]
 
     def get_random_ips(self, count: int) -> set:
         results: set = set()

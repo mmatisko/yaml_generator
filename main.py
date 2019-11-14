@@ -6,8 +6,9 @@ from argparse import ArgParse, ArgumentError
 
 def main(argv):
     print('YML Config Generator')
+    params: dict = {}
     try:
-        network, ports, config, subnet, hosts = ArgParse.parse(argv)
+        params = ArgParse.parse(argv)
     except ArgumentError:
         print("Invalid arguments!")
         sys.exit(2)
