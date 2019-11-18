@@ -1,25 +1,29 @@
+from ansibledir import AnsibleDirectory
 from argparse import ArgParse
-from externalconfig import ExternalConfig
+from configuration import Configuration
 from logger import Logger
 from network import Network
 from portmapping import PortMapping
+from yamlio import YamlIo
 
 
 class Tests(object):
+    test_file: str = "/run/media/mmatisko/Data/Documents/FEKT/DP/program/include/config.yml"
+
     def __init__(self):
         print("Initializing tests...")
 
     @staticmethod
     def arg_parse_generate_test():
-        print("Arg Parse test started!")
-        args = "-G -n 192.168.10.0/24 -p 80,443-11180,11443 -c config.yml -s 1 -h 1".split()
+        print("Arg Parse generate mode test started!")
+        args = ("-G -n 192.168.10.0/24 -p 80,443-11180,11443 -c " + Tests.test_file + " -s 1 -h 1").split()
         arg_parser = ArgParse()
         params = arg_parser.parse(args)
 
         assert params['mode'] == "generate", ("Invalid mode: " + params['mode'])
         assert params['network'] == "192.168.10.0/24", ("Invalid IP:" + params['network'])
         assert params['ports'] == "80,443-11180,11443", ("Invalid ports:" + params['ports'])
-        assert params['config'] == "config.yml", ("Invalid config: " + params['config'])
+        assert params['config'] == Tests.test_file, ("Invalid config: " + params['config'])
         assert params['subnets'] == "1", ("Invalid subnet count:" + params['subnets'])
         assert params['hosts'] == "1", ("Invalid hosts count:" + params['hosts'])
 
@@ -27,14 +31,15 @@ class Tests(object):
 
     @staticmethod
     def arg_parse_replace_test():
-        print("Arg Parse test started!")
-        args = "-R -k mysql_port -v 3336".split()
+        print("Arg Parse replace mode test started!")
+        args = "-R -k mysql_port -v 3336 -c config.yml".split()
         arg_parser = ArgParse()
         params = arg_parser.parse(args)
 
         assert params['mode'] == "replace", ("Invalid mode: " + params['mode'])
         assert params['key'] == "mysql_port", ("Invalid key: " + params['key'])
         assert params['value'] == "3336", ("Invalid value: " + params['value'])
+        assert params['config'] == "config.yml", ("Invalid config: " + params['config'])
 
     @staticmethod
     def logger_test():
@@ -79,16 +84,16 @@ class Tests(object):
     def external_config_test():
         print("External config test started!")
 
-        external_cfg = ExternalConfig("config.yml")
+        external_cfg = Configuration(Tests.test_file)
         assert external_cfg.verify()
-        assert external_cfg.get_path() == "config.yml"
-        backup = external_cfg.get_rules()
-        external_cfg.get_yaml_object().set_rules(backup)
-        external_cfg.get_yaml_object().write()
-        new = external_cfg.get_rules()
-        #print('backup:' + str(backup))
-        #print('new: ' + str(new))
-        assert backup == new
+        assert external_cfg.get_path() == Tests.test_file, ("Invalid path: " + external_cfg.get_path())
+        external_cfg.read_rules()
+        key = "foo"
+        backup_value = external_cfg.get_value(key)
+        external_cfg.set_rules()
+        external_cfg.read_rules()
+        new_value = external_cfg.get_value(key)
+        assert new_value == backup_value, ("Invalid new value: " + new_value)
 
         print("External config test passed!")
 
@@ -97,11 +102,37 @@ class Tests(object):
         print("Port mapping test started!")
 
         port_mapping = PortMapping('80,443/11180,11443')
-        assert port_mapping.are_valid([80,443],[11180,11443])
+        assert port_mapping.are_valid([80, 443], [11180, 11443])
         test_mapping = {80: 11180, 443: 11443}
         assert port_mapping.get_map() == test_mapping
 
         print("Port mapping test passed!")
+
+    @staticmethod
+    def test_file_replace_test():
+        print('Test file replace test started!')
+
+        args = ("-R -k foo -v barbar -c " + Tests.test_file).split()
+        arg_parser = ArgParse()
+        params = arg_parser.parse(args)
+
+        assert YamlIo.is_valid(params['config']), "Config file is invalid!"
+        cfg = Configuration(params['config'])
+        cfg.read_rules()
+        cfg.set_value(params['key'], params['value'])
+        cfg.set_rules()
+
+        assert cfg.key_exists(params['key']), ("Key " + params['key'] + " do not exists in " + Tests.test_file + "!")
+        configured_value = cfg.get_value(params['key'])
+        assert configured_value == params['value']
+        print("Test file replace passed!")
+
+    @staticmethod
+    def ansible_dir_count_test():
+        ans_dir = AnsibleDirectory('/run/media/mmatisko/Data/Documents/FEKT/DP/program/include/lamp_simple/')
+        ans_dir.iterate_directory_tree(lambda filename: print(filename.name))
+        result: int = ans_dir.count_files_in_tree()
+        assert result == 15, ("Invalid files number: " + str(result))
 
 
 # run all tests:
@@ -110,11 +141,3 @@ functions = [func for func in dir(tests) if callable(getattr(tests, func)) and n
 for func in functions:
     callable_func = getattr(tests, func)
     callable_func()
-
-
-# Tests.arg_parse_generate_test()
-# Tests.logger_test()
-# Tests.network_test()
-# Tests.external_config_test()
-# Tests.port_mapping_test()
-
