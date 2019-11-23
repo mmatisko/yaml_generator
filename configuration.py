@@ -40,7 +40,7 @@ class Configuration(object):
         for key, value in working_dict.items():
             if isinstance(value, dict):
                 result = Configuration.__iterate_dict_for_get(value, that_key)
-                if len(result) > 0:
+                if result is not None and len(result) > 0:
                     return result
             else:
                 if key == that_key:

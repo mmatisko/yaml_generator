@@ -3,14 +3,15 @@ import getopt
 import sys
 
 
-class ArgParse(object):
+class ArgParser(object):
     def __init__(self):
-        print("Arg Parse has started...")
+        if __debug__:
+            print("Arg Parse has started...")
 
     @staticmethod
     def parse(argv):
         try:
-            opts, args = getopt.getopt(argv, "HRGc:h:k:n:p:s:v:")
+            opts, args = getopt.getopt(argv, "HRGc:d:h:i:n:p:s:v:")
         except getopt.GetoptError:
             raise ArgumentError
 
@@ -35,6 +36,10 @@ class ArgParse(object):
             if mode == AppMode.Generate or mode == AppMode.Replace:
                 if opt in ("-c", "--config"):
                     params['config'] = arg
+                if opt in ("-d", "--dir"):
+                    params['dir'] = arg
+                if opt in ("-i", "--item"):
+                    params['item'] = arg
 
             if mode == AppMode.Generate:
                 if opt in ("-n", "--network"):
@@ -47,8 +52,6 @@ class ArgParse(object):
                     params['hosts'] = arg
 
             if mode == AppMode.Replace:
-                if opt in ("-k", "--key"):
-                    params['key'] = arg
                 if opt in ("-v", "--value"):
                     params['value'] = arg
 

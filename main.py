@@ -1,7 +1,7 @@
 import getopt
 import sys
 
-from argparse import ArgParse, ArgumentError
+from argparser import ArgParse, ArgumentError
 
 
 def main(argv):

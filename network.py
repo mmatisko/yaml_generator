@@ -8,9 +8,7 @@ class Network(object):
         try:
             self.network_ip = ip_network(network_ip)
         except ValueError:
-            print("Invalid network address arrived!")
-        finally:
-            print("Network has started...")
+            raise
 
     def is_initialized(self) -> bool:
         return not self.network_ip == ''

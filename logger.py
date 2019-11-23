@@ -3,7 +3,8 @@ from datetime import datetime
 
 class Logger(object):
     def __init__(self):
-        print("Logger has started...")
+        if __debug__:
+            print("Logger has started...")
 
     @staticmethod
     def get_timestamp() -> str:
