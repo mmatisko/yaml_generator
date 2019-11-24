@@ -6,10 +6,10 @@
   with_items:
    - httpd
    - php
-   - php-mysql
+   - php-mysqlnd
    - git
-   - libsemanage-python
-   - libselinux-python
+   - python3-libsemanage
+   - python3-libselinux 
 
 - name: insert iptables rule for httpd
   lineinfile: dest=/etc/sysconfig/iptables create=yes state=present regexp="{{ httpd_port }}" insertafter="^:OUTPUT "

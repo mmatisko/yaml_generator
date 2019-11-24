@@ -1,13 +1,16 @@
 ---
 # This playbook will install mysql and create db user and give permissions.
 
+- name: Enable mysql community repo
+  shell: dnf -y install https://repo.mysql.com//mysql80-community-release-fc31-1.noarch.rpm
+
 - name: Install Mysql package
-  yum: name={{ item }} state=installed
+  dnf: name={{ item }} state=installed
   with_items:
-   - mysql-server
-   - MySQL-python
-   - libselinux-python
-   - libsemanage-python
+   - mysql-community-server
+   - python3-mysql
+   - python3-libselinux
+   - python3-libsemanage
 
 - name: Configure SELinux to start mysql on any port
   seboolean: name=mysql_connect_any state=true persistent=yes
@@ -27,7 +30,7 @@
   notify: restart iptables
 
 - name: Create Application Database
-  mysql_db: name={{ dbname }} state=present
+  mysql_db: name={{ dbname }} login_user=root state=present
 
 - name: Create Application DB User
   mysql_user: name={{ dbuser }} password={{ upassword }} priv=*.*:ALL host='%' state=present
