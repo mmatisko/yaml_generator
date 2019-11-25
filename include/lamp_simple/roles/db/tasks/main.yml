@@ -30,7 +30,7 @@
   notify: restart iptables
 
 - name: Create Application Database
-  mysql_db: name={{ dbname }} login_user=root state=present
+  mysql_db: name={{ dbname }} login_user={{ dbuser_old }} state=present
 
 - name: Create Application DB User
   mysql_user: name={{ dbuser }} password={{ upassword }} priv=*.*:ALL host='%' state=present
