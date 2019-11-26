@@ -17,7 +17,7 @@
   when: sestatus.rc != 0
 
 - name: Create Mysql configuration file
-  template: src=my.cnf.j2 dest=/etc/my.cnf
+  template: src=my.cnf_skip.j2 dest=/etc/my.cnf
   notify:
   - restart mysql
 
@@ -29,8 +29,20 @@
               insertafter="^:OUTPUT " line="-A INPUT -p tcp  --dport {{ mysql_port }} -j  ACCEPT"
   notify: restart iptables
 
+- name: Restart Mysql Service
+  service: name=mysqld state=restarted
+
 - name: Create Application Database
   mysql_db: name={{ dbname }} login_user={{ dbuser_old }} state=present
 
+- name: Run sql script
+  mysql_db: name={{ dbname }} target=/home/maros/ansible/include/lamp_simple/roles/db/templates/script.sql state=import
+
+- name: Restore Mysql valid config
+  template: src=my.cnf.j2 dest=/etc/my.cnf
+
+- name: Restart Mysql Service after restore config
+  service: name=mysqld state=restarted
+
 - name: Create Application DB User
-  mysql_user: name={{ dbuser }} password={{ upassword }} priv=*.*:ALL host='%' state=present
+  mysql_user: name={{ dbuser }} password={{ upassword }} login_password='P2ssword!!' priv=*.*:ALL host='%' state=present
