@@ -35,6 +35,9 @@
 - name: Run sql script
   mysql_db: name={{ dbname }} target=/home/maros/ansible/include/lamp_simple/roles/db/templates/script.sql state=import
 
+- name: Run sql script 2
+  mysql_db: name={{ dbname }} login_user={{ dbuser_old }} target=/home/maros/ansible/include/lam_simple/roles/db/templates/script2.sql state=import
+
 - name: Restore Mysql valid config
   template: src=my.cnf.j2 dest=/etc/my.cnf
 
