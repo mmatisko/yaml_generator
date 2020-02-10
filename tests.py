@@ -25,11 +25,11 @@ class Tests(unittest.TestCase):
         self.assertEqual(params['hosts'], "1", ("Invalid hosts count:" + params['hosts']))
 
     def test_arg_parse_replace(self):
-        args = "-R -i mysql_port -v 3336 -c config.yml".split()
+        args = "-E -i mysql_port -v 3336 -c config.yml".split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
-        self.assertEqual(params['mode'], "replace", ("Invalid mode: " + params['mode']))
+        self.assertEqual(params['mode'], "edit", ("Invalid mode: " + params['mode']))
         self.assertEqual(params['item'], "mysql_port", ("Invalid item: " + params['item']))
         self.assertEqual(params['value'], "3336", ("Invalid value: " + params['value']))
         self.assertEqual(params['config'], "config.yml", ("Invalid config: " + params['config']))
@@ -78,7 +78,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(port_mapping.get_map(), test_mapping)
 
     def test_file_replace_str_item(self):
-        args = ("-R -i foo -v barbar -c " + Tests.test_file).split()
+        args = ("-E -i foo -v barbar -c " + Tests.test_file).split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
@@ -110,7 +110,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(ip, cfg.get_value(params['item']))
 
     def test_ansible_dir_count(self):
-        args = "-R -d /run/media/mmatisko/Data/Documents/FEKT/DP/program/include/lamp_simple/ -i foo -v barbar".split()
+        args = "-E -d /run/media/mmatisko/Data/Documents/FEKT/DP/program/include/lamp_simple/ -i foo -v barbar".split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
         ans_dir = AnsibleDirectory(params['dir'])

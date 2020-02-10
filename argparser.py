@@ -11,13 +11,13 @@ class ArgParser(object):
     @staticmethod
     def parse(argv):
         try:
-            opts, args = getopt.getopt(argv, "HRGc:d:h:i:n:p:s:v:")
+            opts, args = getopt.getopt(argv, "EHGc:d:h:i:n:p:s:v:")
         except getopt.GetoptError:
             raise ArgumentError
 
         class AppMode(Enum):
             Unknown = 0
-            Replace = 1
+            Edit = 1
             Generate = 2
         mode: AppMode = AppMode.Unknown
         params: dict = {}
@@ -26,14 +26,14 @@ class ArgParser(object):
             if opt in ("-H", "--help"):
                 print("main.py -n <network> -p <ports> -c <config> -s <subnet count> -h <hosts for subnets>")
                 sys.exit(1)
-            if opt in ("-R", "--replace"):
-                params['mode'] = "replace"
-                mode = AppMode.Replace
+            if opt in ("-E", "--edit"):
+                params['mode'] = "edit"
+                mode = AppMode.Edit
             if opt in ("-G", "--generate"):
                 params['mode'] = "generate"
                 mode = AppMode.Generate
 
-            if mode == AppMode.Generate or mode == AppMode.Replace:
+            if mode == AppMode.Generate or mode == AppMode.Edit:
                 if opt in ("-c", "--config"):
                     params['config'] = arg
                 if opt in ("-d", "--dir"):
@@ -51,7 +51,7 @@ class ArgParser(object):
                 if opt in ("-h", "--hosts"):
                     params['hosts'] = arg
 
-            if mode == AppMode.Replace:
+            if mode == AppMode.Edit:
                 if opt in ("-v", "--value"):
                     params['value'] = arg
 
