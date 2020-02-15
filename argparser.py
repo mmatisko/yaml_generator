@@ -38,22 +38,19 @@ class ArgParser(object):
                     params['config'] = arg
                 if opt in ("-d", "--dir"):
                     params['dir'] = arg
+
+            if mode == AppMode.Edit:
                 if opt in ("-i", "--item"):
                     params['item'] = arg
+                if opt in ("-v", "--value"):
+                    params['value'] = arg
 
-            if mode == AppMode.Generate:
                 if opt in ("-n", "--network"):
                     params['network'] = arg
                 if opt in ("-p", "--ports"):
                     params['ports'] = arg
-                if opt in ("-s", "--subnets"):
-                    params['subnets'] = arg
                 if opt in ("-h", "--hosts"):
                     params['hosts'] = arg
-
-            if mode == AppMode.Edit:
-                if opt in ("-v", "--value"):
-                    params['value'] = arg
 
             if mode == AppMode.Unknown:
                 raise ArgumentModeError

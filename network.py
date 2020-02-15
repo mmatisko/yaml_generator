@@ -1,8 +1,9 @@
+from dynamic_value import DynamicValue
 from ipaddress import ip_address, ip_network
 from random import getrandbits
 
 
-class Network(object):
+class Network(DynamicValue):
     def __init__(self, network_ip: str):
         self.network_ip = ''
         try:
@@ -10,14 +11,14 @@ class Network(object):
         except ValueError:
             raise
 
-    def is_initialized(self) -> bool:
+    def is_valid(self) -> bool:
         return not self.network_ip == ''
 
-    def get_random_ip(self) -> str:
-        random_ip = str(self.get_random_ips(1))
+    def get_random_value(self) -> str:
+        random_ip = str(self.get_random_values(1))
         return random_ip[2:len(random_ip)-2]
 
-    def get_random_ips(self, count: int) -> set:
+    def get_random_values(self, count: int) -> set:
         results: set = set()
         while len(results) < count:
             bits = getrandbits(self.network_ip.max_prefixlen - self.network_ip.prefixlen)
@@ -27,9 +28,3 @@ class Network(object):
 
     def is_address_in_network(self, address: str) -> bool:
         return ip_address(address) in self.network_ip
-
-    def are_addresses_in_network(self, addresses: list) -> bool:
-        for address in addresses:
-            if not ip_address(address) in self.network_ip:
-                return False
-        return True

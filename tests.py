@@ -1,9 +1,12 @@
 from ansibledir import AnsibleDirectory
 from argparser import ArgParser
 from configuration import Configuration
+from csv_reader import CsvReader
+from dynamic_value import DynamicValue
 from logger import Logger
 from network import Network
-from portmapping import PortMapping
+from portrange import InvalidPortRangeException, PortRange
+from type_detector import DynamicTypeDetector, DynamicValueType
 from yamlio import YamlIo
 
 import unittest
@@ -11,20 +14,18 @@ import unittest
 
 class Tests(unittest.TestCase):
     test_file: str = "/run/media/mmatisko/Data/Documents/FEKT/DP/program/include/testing/config.yml"
+    test_dir: str = "./template_config/"
 
     def test_arg_parse_generate(self):
-        args = ("-G -n 192.168.10.0/24 -p 80,443-11180,11443 -c " + Tests.test_file + " -s 1 -h 1").split()
+        args = ("-G -c " + Tests.test_file + " -d " + Tests.test_dir).split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
         self.assertEqual(params['mode'], "generate", ("Invalid mode: " + params['mode']))
-        self.assertEqual(params['network'], "192.168.10.0/24", ("Invalid IP:" + params['network']))
-        self.assertEqual(params['ports'], "80,443-11180,11443", ("Invalid ports:" + params['ports']))
         self.assertEqual(params['config'], Tests.test_file, ("Invalid config: " + params['config']))
-        self.assertEqual(params['subnets'], "1", ("Invalid subnet count:" + params['subnets']))
-        self.assertEqual(params['hosts'], "1", ("Invalid hosts count:" + params['hosts']))
+        self.assertEqual(params['dir'], Tests.test_dir, ("Invalid template directory:" + params['dir']))
 
-    def test_arg_parse_replace(self):
+    def test_arg_parse_edit(self):
         args = "-E -i mysql_port -v 3336 -c config.yml".split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
@@ -35,23 +36,23 @@ class Tests(unittest.TestCase):
         self.assertEqual(params['config'], "config.yml", ("Invalid config: " + params['config']))
 
     def test_logger(self):
-        loggerman = Logger()
-        self.assertEqual(loggerman.get_debug_log("debug"), (loggerman.get_timestamp() + " [DEBUG]: debug"))
-        self.assertEqual(loggerman.get_warning_log("warning"), (loggerman.get_timestamp() + " [WARNING]: warning"))
-        self.assertEqual(loggerman.get_error_log("error"), (loggerman.get_timestamp() + " [ERROR]: error"))
-        self.assertEqual(loggerman.get_log("message"), (loggerman.get_timestamp() + " message"))
+        my_py_log = Logger()
+        self.assertEqual(my_py_log.get_debug_log("debug"), (my_py_log.get_timestamp() + " [DEBUG]: debug"))
+        self.assertEqual(my_py_log.get_warning_log("warning"), (my_py_log.get_timestamp() + " [WARNING]: warning"))
+        self.assertEqual(my_py_log.get_error_log("error"), (my_py_log.get_timestamp() + " [ERROR]: error"))
+        self.assertEqual(my_py_log.get_log("message"), (my_py_log.get_timestamp() + " message"))
 
     def test_network(self):
         network_tester = Network("192.168.10.128/25")
-        self.assertTrue(network_tester.is_initialized())
-        random_ip = network_tester.get_random_ip()
+        self.assertTrue(network_tester.is_valid())
+        random_ip = network_tester.get_random_value()
         self.assertEqual(len(random_ip), 14)
-        random_ips = network_tester.get_random_ips(5)
+        random_ips = network_tester.get_random_values(5)
         if __debug__:
             print(random_ip)
         self.assertEqual(len(random_ips), 5)
         self.assertTrue(network_tester.is_address_in_network("192.168.10.220"))
-        self.assertTrue(network_tester.are_addresses_in_network(["192.168.10.221", "192.168.10.254"]))
+        self.assertTrue(network_tester.is_address_in_network("192.168.10.221"))
         self.assertFalse(network_tester.is_address_in_network("192.168.10.15"))
         self.assertFalse(network_tester.is_address_in_network("172.16.150.220"))
 
@@ -71,13 +72,25 @@ class Tests(unittest.TestCase):
         new_value = external_cfg.get_value(item)
         self.assertEqual(new_value, backup_value, ("Invalid new value: " + new_value))
 
-    def test_port_mapping(self):
-        port_mapping = PortMapping('80,443/11180,11443')
-        self.assertTrue(port_mapping.are_valid([80, 443], [11180, 11443]))
-        test_mapping = {80: 11180, 443: 11443}
-        self.assertEqual(port_mapping.get_map(), test_mapping)
+    def test_port_range(self):
+        # invalid port ranges
+        port_ranges: list = [PortRange('0-1'), PortRange('100-10'), PortRange('5-66000')]
+        for port_range in port_ranges:
+            self.assertFalse(port_range.is_valid())
+        with self.assertRaises(InvalidPortRangeException):
+            _ = PortRange('1-2-3')
+        with self.assertRaises(InvalidPortRangeException):
+            _ = PortRange('80')
+        # valid port range
+        port_range = PortRange('80-443')
+        self.assertTrue(port_range.is_valid())
+        self.assertTrue(port_range.get_random_value() in range(80, 444))
+        # single valid port
+        http_only_port_range = PortRange('80-80')
+        self.assertTrue(http_only_port_range.is_valid())
+        self.assertEqual(http_only_port_range.get_random_value(), 80)
 
-    def test_file_replace_str_item(self):
+    def test_file_edit_str_item(self):
         args = ("-E -i foo -v barbar -c " + Tests.test_file).split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
@@ -93,12 +106,12 @@ class Tests(unittest.TestCase):
         configured_value = cfg.get_value(params['item'])
         self.assertEqual(configured_value, params['value'])
 
-    def test_file_replace_generated_ip(self):
-        args = ("-G -i ip -n 192.168.100.0/25 -c " + Tests.test_file).split()
+    def test_file_edit_generated_ip(self):
+        args = ("-E -i ip -n 192.168.100.0/25 -c " + Tests.test_file).split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
-        ip = Network(params['network']).get_random_ip()
+        ip = Network(params['network']).get_random_value()
 
         cfg = Configuration(params['config'])
         cfg.read_rules()
@@ -117,9 +130,34 @@ class Tests(unittest.TestCase):
         if __debug__:
             ans_dir.iterate_directory_tree(lambda filename: print(filename.name))
         else:
-            ans_dir.iterate_directory_tree(lambda param: None)
+            ans_dir.iterate_directory_tree(lambda _: None)
         result: int = ans_dir.count_files_in_tree()
         self.assertEqual(result, 15, ("Invalid files number: " + str(result)))
+
+    def test_dynamic_types_interface(self):
+        self.assertTrue(issubclass(PortRange, DynamicValue))
+        self.assertTrue(issubclass(Network, DynamicValue))
+        self.assertTrue(issubclass(CsvReader, DynamicValue))
+
+    def test_type_detection(self):
+        valid_net: str = '192.168.10.0/24'
+        self.assertTrue(DynamicTypeDetector.is_network(valid_net))
+        self.assertEqual(DynamicTypeDetector.detect_type(valid_net), DynamicValueType.Network)
+
+        valid_port: str = '1011-1012'
+        self.assertTrue(DynamicTypeDetector.is_port(valid_port))
+        self.assertEqual(DynamicTypeDetector.detect_type(valid_port), DynamicValueType.PortRange)
+
+        # valid_file: str = './include/generator_config.yml'
+        # self.assertEqual(DynamicTypeDetector.detect_type(valid_str), DynamicValueType.StaticString)
+
+        invalid_port: str = '80'
+        with self.assertRaises(InvalidPortRangeException):
+            _ = DynamicTypeDetector.detect_type(invalid_port)
+
+        invalid_network: str = '192.156.156.256/33'
+        with self.assertRaises(InvalidPortRangeException):
+            _ = DynamicTypeDetector.detect_type(invalid_network)
 
 
 if __name__ == '__main__':
