@@ -5,14 +5,15 @@ from random import getrandbits
 
 class Network(DynamicValue):
     def __init__(self, network_ip: str):
-        self.network_ip = ''
+        self.network_ip = None
         try:
             self.network_ip = ip_network(network_ip)
         except ValueError:
             raise
 
+    @property
     def is_valid(self) -> bool:
-        return not self.network_ip == ''
+        return self.network_ip is not None
 
     def get_random_value(self) -> str:
         random_ip = str(self.get_random_values(1))

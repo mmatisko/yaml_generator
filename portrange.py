@@ -1,5 +1,5 @@
 from dynamic_value import DynamicValue
-import random
+from random import randint
 
 
 class PortRange(DynamicValue):
@@ -22,6 +22,7 @@ class PortRange(DynamicValue):
         except Exception:
             raise
 
+    @property
     def is_valid(self) -> bool:
         return self.range_begin in range(1, 65535) \
             and self.range_end in range(1, 65535)  \
@@ -30,7 +31,7 @@ class PortRange(DynamicValue):
     def get_random_value(self) -> int:
         random_port: int = 0
         while random_port == 0 or random_port in self.used_ports:
-            random_port = random.randint(self.range_begin, self.range_end)
+            random_port = randint(self.range_begin, self.range_end)
         self.used_ports.add(random_port)
         return random_port
 

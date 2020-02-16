@@ -1,4 +1,5 @@
 from enum import Enum
+from list_reader import ListFileReader
 from network import Network
 from portrange import PortRange
 
@@ -9,46 +10,57 @@ class DynamicValueType(Enum):
     File = 2
 
 
-class DynamicTypeDetector(object):
+class Singleton(object):
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = object.__new__(cls)
+        return cls._instance
+
+
+class DynamicTypeDetector(Singleton):
     def __init__(self):
-        pass
+        super(DynamicTypeDetector, self).__init__()
 
-    @staticmethod
-    def is_network(value: str) -> bool:
+    # noinspection PyMethodMayBeStatic
+    def is_type(self, type_init: classmethod, value: str) -> bool:
         try:
-            net = Network(value)
-            return net.is_valid()
+            return type_init(value).is_valid
         except ValueError:
             return False
         except Exception:
             raise
 
-    @staticmethod
-    def is_port(value: str) -> bool:
+    def is_network(self, value: str) -> bool:
         try:
-            port_range = PortRange(value)
-            return port_range.is_valid()
-        except ValueError:
-            return False
+            return self.is_type(Network, value)
         except Exception:
             raise
 
-    @staticmethod
-    def is_file(value: str) -> bool:
-        pass
-
-    @staticmethod
-    def detect_type(value: str) -> DynamicValueType:
+    def is_port(self, value: str) -> bool:
         try:
-            if DynamicTypeDetector.is_network(value):
-                return DynamicValueType.Network
-            elif DynamicTypeDetector.is_port(value):
-                return DynamicValueType.PortRange
-            elif DynamicTypeDetector.is_file(value):
-                return DynamicValueType.File
-            else:
-                raise InvalidDynamicValue
+            return self.is_type(PortRange, value)
+        except Exception:
+            raise
 
+    def is_file(self, value: str) -> bool:
+        try:
+            return self.is_type(ListFileReader, value)
+        except Exception:
+            raise
+
+    def detect_type(self, value: str) -> DynamicValueType:
+        pairs: dict[DynamicValueType, object] = dict({
+            DynamicValueType.File: lambda item: self.is_file(item),
+            DynamicValueType.Network: lambda item: self.is_network(item),
+            DynamicValueType.PortRange: lambda item: self.is_port(item)
+        })
+        try:
+            for value_type, fnc in pairs.items():
+                if callable(fnc) and fnc(value):
+                    return value_type
+            raise InvalidDynamicValue
         except Exception:
             raise
 

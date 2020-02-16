@@ -1,14 +1,14 @@
 import getopt
 import sys
 
-from argparser import ArgParse, ArgumentError
+from argparser import ArgParser, ArgumentError
 
 
 def main(argv):
     print('YML Config Generator')
     params: dict = {}
     try:
-        params = ArgParse.parse(argv)
+        params = ArgParser.parse(argv)
     except ArgumentError:
         print("Invalid arguments!")
         sys.exit(2)

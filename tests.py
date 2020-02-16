@@ -1,8 +1,8 @@
 from ansibledir import AnsibleDirectory
 from argparser import ArgParser
 from configuration import Configuration
-from csv_reader import CsvReader
 from dynamic_value import DynamicValue
+from list_reader import ListFileReader
 from logger import Logger
 from network import Network
 from portrange import InvalidPortRangeException, PortRange
@@ -44,7 +44,7 @@ class Tests(unittest.TestCase):
 
     def test_network(self):
         network_tester = Network("192.168.10.128/25")
-        self.assertTrue(network_tester.is_valid())
+        self.assertTrue(network_tester.is_valid)
         random_ip = network_tester.get_random_value()
         self.assertEqual(len(random_ip), 14)
         random_ips = network_tester.get_random_values(5)
@@ -76,18 +76,18 @@ class Tests(unittest.TestCase):
         # invalid port ranges
         port_ranges: list = [PortRange('0-1'), PortRange('100-10'), PortRange('5-66000')]
         for port_range in port_ranges:
-            self.assertFalse(port_range.is_valid())
+            self.assertFalse(port_range.is_valid)
         with self.assertRaises(InvalidPortRangeException):
             _ = PortRange('1-2-3')
         with self.assertRaises(InvalidPortRangeException):
             _ = PortRange('80')
         # valid port range
         port_range = PortRange('80-443')
-        self.assertTrue(port_range.is_valid())
+        self.assertTrue(port_range.is_valid)
         self.assertTrue(port_range.get_random_value() in range(80, 444))
         # single valid port
         http_only_port_range = PortRange('80-80')
-        self.assertTrue(http_only_port_range.is_valid())
+        self.assertTrue(http_only_port_range.is_valid)
         self.assertEqual(http_only_port_range.get_random_value(), 80)
 
     def test_file_edit_str_item(self):
@@ -137,27 +137,51 @@ class Tests(unittest.TestCase):
     def test_dynamic_types_interface(self):
         self.assertTrue(issubclass(PortRange, DynamicValue))
         self.assertTrue(issubclass(Network, DynamicValue))
-        self.assertTrue(issubclass(CsvReader, DynamicValue))
+        self.assertTrue(issubclass(ListFileReader, DynamicValue))
 
     def test_type_detection(self):
+        detector = DynamicTypeDetector()
+
         valid_net: str = '192.168.10.0/24'
-        self.assertTrue(DynamicTypeDetector.is_network(valid_net))
-        self.assertEqual(DynamicTypeDetector.detect_type(valid_net), DynamicValueType.Network)
+        self.assertTrue(detector.is_network(valid_net))
+        self.assertEqual(detector.detect_type(valid_net), DynamicValueType.Network)
 
         valid_port: str = '1011-1012'
-        self.assertTrue(DynamicTypeDetector.is_port(valid_port))
-        self.assertEqual(DynamicTypeDetector.detect_type(valid_port), DynamicValueType.PortRange)
-
-        # valid_file: str = './include/generator_config.yml'
-        # self.assertEqual(DynamicTypeDetector.detect_type(valid_str), DynamicValueType.StaticString)
+        self.assertTrue(detector.is_port(valid_port))
+        self.assertEqual(detector.detect_type(valid_port), DynamicValueType.PortRange)
 
         invalid_port: str = '80'
         with self.assertRaises(InvalidPortRangeException):
-            _ = DynamicTypeDetector.detect_type(invalid_port)
+            _ = detector.detect_type(invalid_port)
 
         invalid_network: str = '192.156.156.256/33'
         with self.assertRaises(InvalidPortRangeException):
-            _ = DynamicTypeDetector.detect_type(invalid_network)
+            _ = detector.detect_type(invalid_network)
+
+    def test_simple_text_detection_read(self):
+        detector = DynamicTypeDetector()
+        valid_file: str = './include/passwords.txt'
+        self.assertEqual(detector.detect_type(valid_file), DynamicValueType.File)
+
+        reader = ListFileReader(valid_file)
+        self.assertEqual(reader.reader.get_item_count(), 7)
+        self.assertEqual(reader.reader.read_value(6), 'heslopass')
+        self.assertTrue(reader.get_random_value() in {'heslo', 'heslo1', 'heslo2', 'password',
+                                                      'heslo123', 'pass12345', 'heslopass'})
+
+    def test_csv_detection_read(self):
+        detector = DynamicTypeDetector()
+        valid_file: str = './include/logins.csv'
+        self.assertEqual(detector.detect_type(valid_file), DynamicValueType.File)
+
+        reader = ListFileReader(valid_file)
+        self.assertEqual(reader.reader.get_item_count(), 6)
+        self.assertEqual(reader.reader.read_value(0), 'username')
+        self.assertEqual(reader.reader.read_value(2), 'user')
+        self.assertEqual(reader.reader.read_value(4), 'visible_login')
+        self.assertEqual(reader.reader.read_value(5), 'last_login')
+        self.assertTrue(reader.get_random_value() in {'username', 'login', 'user', 'login_name',
+                                                      'visible_login', 'last_login'})
 
 
 if __name__ == '__main__':

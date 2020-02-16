@@ -3,12 +3,16 @@ class DynamicValueMeta(type):
         return self.__subclasscheck__(type(instance))
 
     def __subclasscheck__(self, subclass):
-        return (hasattr(subclass, '__init__') and
-                callable(subclass.__init__) and
-                hasattr(subclass, 'is_valid') and
-                callable(subclass.is_valid) and
-                hasattr(subclass, 'get_random_value') and
-                callable(subclass.get_random_value))
+        methods: list = ['__init__', 'get_random_value']
+        attribs: list = ['is_valid']
+
+        for fnc in methods:
+            if not hasattr(subclass, fnc) or not callable(getattr(subclass, fnc)):
+                return False
+        for attr in attribs:
+            if not hasattr(subclass, attr) or callable(getattr(subclass, attr)):
+                return False
+        return True
 
 
 class DynamicValue(metaclass=DynamicValueMeta):
