@@ -9,5 +9,5 @@ static:
 # Dynamic values
 dynamic:
   - network: 192.168.1.0/24
-  - ports: 2042-5142
-  - password: ./testing/passwords.txt.txt
+    ports: 2042-5142
+    password: ./testing/passwords.txt

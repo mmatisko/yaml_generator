@@ -12,18 +12,18 @@ from yamlio import YamlIo
 import unittest
 
 
-class Tests(unittest.TestCase):
+class UnitTest(unittest.TestCase):
     test_file: str = "/run/media/mmatisko/Data/Documents/FEKT/DP/program/include/testing/config.yml"
     test_dir: str = "./template_config/"
 
     def test_arg_parse_generate(self):
-        args = ("-G -c " + Tests.test_file + " -d " + Tests.test_dir).split()
+        args = ("-G -c " + UnitTest.test_file + " -d " + UnitTest.test_dir).split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
         self.assertEqual(params['mode'], "generate", ("Invalid mode: " + params['mode']))
-        self.assertEqual(params['config'], Tests.test_file, ("Invalid config: " + params['config']))
-        self.assertEqual(params['dir'], Tests.test_dir, ("Invalid template directory:" + params['dir']))
+        self.assertEqual(params['config'], UnitTest.test_file, ("Invalid config: " + params['config']))
+        self.assertEqual(params['dir'], UnitTest.test_dir, ("Invalid template directory:" + params['dir']))
 
     def test_arg_parse_edit(self):
         args = "-E -i mysql_port -v 3336 -c config.yml".split()
@@ -61,9 +61,9 @@ class Tests(unittest.TestCase):
         self.assertRaises(ValueError, Network, "192.168.255.255/24")
 
     def test_external_config(self):
-        external_cfg = Configuration(Tests.test_file)
-        self.assertTrue(external_cfg.verify())
-        self.assertEqual(external_cfg.get_path(), Tests.test_file, ("Invalid path: " + external_cfg.get_path()))
+        external_cfg = Configuration(UnitTest.test_file)
+        self.assertTrue(external_cfg.is_valid())
+        self.assertEqual(external_cfg.get_path(), UnitTest.test_file, ("Invalid path: " + external_cfg.get_path()))
         external_cfg.read_rules()
         item = "foo"
         backup_value = external_cfg.get_value(item)
@@ -91,7 +91,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(http_only_port_range.get_random_value(), 80)
 
     def test_file_edit_str_item(self):
-        args = ("-E -i foo -v barbar -c " + Tests.test_file).split()
+        args = ("-E -i foo -v barbar -c " + UnitTest.test_file).split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
@@ -102,12 +102,12 @@ class Tests(unittest.TestCase):
         cfg.set_rules()
 
         self.assertTrue(cfg.key_exists(params['item']), ("Item " + params['item'] + " do not exists in " +
-                                                         Tests.test_file + "!"))
+                                                         UnitTest.test_file + "!"))
         configured_value = cfg.get_value(params['item'])
         self.assertEqual(configured_value, params['value'])
 
     def test_file_edit_generated_ip(self):
-        args = ("-E -i ip -n 192.168.100.0/25 -c " + Tests.test_file).split()
+        args = ("-E -i ip -n 192.168.100.0/25 -c " + UnitTest.test_file).split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
@@ -117,7 +117,7 @@ class Tests(unittest.TestCase):
         cfg.read_rules()
         cfg.set_value(params['item'], ip)
         cfg.set_rules()
-        cfg.write_rules(Tests.test_file)
+        cfg.write_rules(UnitTest.test_file)
 
         cfg.read_rules()
         self.assertEqual(ip, cfg.get_value(params['item']))
@@ -182,6 +182,16 @@ class Tests(unittest.TestCase):
         self.assertEqual(reader.reader.read_value(5), 'last_login')
         self.assertTrue(reader.get_random_value() in {'username', 'login', 'user', 'login_name',
                                                       'visible_login', 'last_login'})
+
+    def test_input_config(self):
+        config = Configuration('./include/generator_config.yml')
+        self.assertTrue(config.is_valid())
+
+        config.read_rules()
+        self.assertTrue(config.key_exists('general'))
+        self.assertTrue(config.key_exists('static'))
+        self.assertTrue(config.key_exists('dynamic'))
+        self.assertTrue(config.key_exists('iterations'))
 
 
 if __name__ == '__main__':

@@ -12,8 +12,8 @@ class Configuration(object):
         except IOError:
             print("Unknown IO error")
 
-    def verify(self) -> bool:
-        return self.yml_object.is_valid(self.yml_object.get_path())
+    def is_valid(self) -> bool:
+        return Configuration.is_valid_path(self.yml_object.get_path())
 
     def read_rules(self):
         self.yml_object.read()
@@ -33,19 +33,40 @@ class Configuration(object):
         if return_value:
             return result
         else:
-            return len(result) > 0
+            return result is not None
 
     @staticmethod
     def __iterate_dict_for_get(working_dict: dict, that_key: str):
         for key, value in working_dict.items():
-            if isinstance(value, dict):
-                result = Configuration.__iterate_dict_for_get(value, that_key)
-                if result is not None and len(result) > 0:
-                    return result
-            else:
-                if key == that_key:
-                    return value
+            if key == that_key:
+                return value
+            check_result = Configuration.__get_iteration_subroutine(value, that_key)
+            if check_result is not None:
+                return check_result
+
         return
+
+    @staticmethod
+    def __iterate_list_for_get(working_list: list, that_key: str):
+        for key in working_list:
+            if key == that_key:
+                return key
+            check_result = Configuration.__get_iteration_subroutine(key, that_key)
+            if check_result is not None:
+                return check_result
+
+    @staticmethod
+    def __get_iteration_subroutine(item, that_key: str):
+        if isinstance(item, list):
+            result = Configuration.__iterate_list_for_get(item, that_key)
+            if result is not None:
+                return result
+        elif isinstance(item, dict):
+            result = Configuration.__iterate_dict_for_get(item, that_key)
+            if result is not None:
+                return result
+        else:
+            return None
 
     @staticmethod
     def __iterate_dict_for_set(working_dict: dict, that_key: str, new_value: str):
@@ -67,5 +88,5 @@ class Configuration(object):
         return self.yml_object.get_path()
 
     @staticmethod
-    def is_valid(path: str):
+    def is_valid_path(path: str):
         return YamlIo.is_valid(path)

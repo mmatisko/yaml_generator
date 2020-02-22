@@ -49,8 +49,8 @@ class ArgParser(object):
                     params['network'] = arg
                 if opt in ("-p", "--ports"):
                     params['ports'] = arg
-                if opt in ("-h", "--hosts"):
-                    params['hosts'] = arg
+                if opt in ("-f", "--file"):
+                    params['file'] = arg
 
             if mode == AppMode.Unknown:
                 raise ArgumentModeError
