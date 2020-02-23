@@ -22,7 +22,10 @@ class Network(DynamicValue):
     def get_random_values(self, count: int) -> set:
         results: set = set()
         while len(results) < count:
-            bits = getrandbits(self.network_ip.max_prefixlen - self.network_ip.prefixlen)
+            host_prefix = self.network_ip.max_prefixlen - self.network_ip.prefixlen
+            bits = getrandbits(host_prefix)
+            if bits is 0 or bits is (pow(2, host_prefix) - 1):
+                continue
             addr = ip_address(self.network_ip.network_address + bits)
             results.add(str(addr))
         return results

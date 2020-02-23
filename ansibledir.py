@@ -1,5 +1,3 @@
-from configuration import Configuration
-import io
 import os.path
 
 
@@ -10,7 +8,12 @@ class AnsibleDirectory(object):
         else:
             raise FileExistsError
 
-    def iterate_directory_tree(self, action, open_mode: str = 'r'):
+    def iterate_directory_tree(self) -> str:
+        for root, subdir, files in os.walk(self.path):
+            for filename in files:
+                yield root, filename
+
+    def iterate_directory_tree_with_open(self, action, open_mode: str = 'r'):
         for root, subdir, files in os.walk(self.path):
             for filename in files:
                 with open(os.path.join(root, filename), open_mode) as config_file:
@@ -18,6 +21,6 @@ class AnsibleDirectory(object):
 
     def count_files_in_tree(self) -> int:
         counter: int = 0
-        for _, _, _ in os.walk(self.path):
+        for _ in self.iterate_directory_tree():
             counter += 1
         return counter

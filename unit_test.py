@@ -1,5 +1,5 @@
 from ansibledir import AnsibleDirectory
-from argparser import ArgParser
+from argparser import AppMode, ArgParser, ArgumentType
 from configuration import Configuration
 from dynamic_value import DynamicValue
 from list_reader import ListFileReader
@@ -9,6 +9,7 @@ from portrange import InvalidPortRangeException, PortRange
 from type_detector import DynamicTypeDetector, DynamicValueType
 from yamlio import YamlIo
 
+import os.path
 import unittest
 
 
@@ -21,26 +22,30 @@ class UnitTest(unittest.TestCase):
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
-        self.assertEqual(params['mode'], "generate", ("Invalid mode: " + params['mode']))
-        self.assertEqual(params['config'], UnitTest.test_file, ("Invalid config: " + params['config']))
-        self.assertEqual(params['dir'], UnitTest.test_dir, ("Invalid template directory:" + params['dir']))
+        self.assertEqual(params[ArgumentType.AppMode], AppMode.Generate, 
+                         ("Invalid mode: " + str(params[ArgumentType.AppMode])))
+        self.assertEqual(params[ArgumentType.ConfigFile], UnitTest.test_file, 
+                         ("Invalid config: " + params[ArgumentType.ConfigFile]))
+        self.assertEqual(params[ArgumentType.AnsibleConfigDir], UnitTest.test_dir, 
+                         ("Invalid Ansible directory:" + params[ArgumentType.AnsibleConfigDir]))
 
     def test_arg_parse_edit(self):
         args = "-E -i mysql_port -v 3336 -c config.yml".split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
-        self.assertEqual(params['mode'], "edit", ("Invalid mode: " + params['mode']))
-        self.assertEqual(params['item'], "mysql_port", ("Invalid item: " + params['item']))
-        self.assertEqual(params['value'], "3336", ("Invalid value: " + params['value']))
-        self.assertEqual(params['config'], "config.yml", ("Invalid config: " + params['config']))
+        self.assertEqual(params[ArgumentType.AppMode], AppMode.Edit, ("Invalid mode: " +
+                                                                      str(params[ArgumentType.AppMode])))
+        self.assertEqual(params[ArgumentType.ItemKey], "mysql_port", ("Invalid item: " + params[ArgumentType.ItemKey]))
+        self.assertEqual(params[ArgumentType.ItemValue], "3336", ("Invalid value: " + params[ArgumentType.ItemValue]))
+        self.assertEqual(params[ArgumentType.ConfigFile], "config.yml",
+                         ("Invalid config: " + params[ArgumentType.ConfigFile]))
 
     def test_logger(self):
-        my_py_log = Logger()
-        self.assertEqual(my_py_log.get_debug_log("debug"), (my_py_log.get_timestamp() + " [DEBUG]: debug"))
-        self.assertEqual(my_py_log.get_warning_log("warning"), (my_py_log.get_timestamp() + " [WARNING]: warning"))
-        self.assertEqual(my_py_log.get_error_log("error"), (my_py_log.get_timestamp() + " [ERROR]: error"))
-        self.assertEqual(my_py_log.get_log("message"), (my_py_log.get_timestamp() + " message"))
+        self.assertEqual(Logger.get_debug_log("debug"), (Logger.get_timestamp() + " [DEBUG]: debug"))
+        self.assertEqual(Logger.get_warning_log("warning"), (Logger.get_timestamp() + " [WARNING]: warning"))
+        self.assertEqual(Logger.get_error_log("error"), (Logger.get_timestamp() + " [ERROR]: error"))
+        self.assertEqual(Logger.get_log("message"), (Logger.get_timestamp() + " message"))
 
     def test_network(self):
         network_tester = Network("192.168.10.128/25")
@@ -55,6 +60,12 @@ class UnitTest(unittest.TestCase):
         self.assertTrue(network_tester.is_address_in_network("192.168.10.221"))
         self.assertFalse(network_tester.is_address_in_network("192.168.10.15"))
         self.assertFalse(network_tester.is_address_in_network("172.16.150.220"))
+
+        self.assertRaises(ValueError, Network, "192.168.1.0/0")
+        # 0.0.0.0/0 is valid
+
+        self.assertRaises(ValueError, Network, "192.168.1.0/1")
+        # 128.0.0.0/1 is valid
 
         self.assertRaises(ValueError, Network, "192.168.256.255/32")
         self.assertRaises(ValueError, Network, "192.168.255.0/33")
@@ -95,44 +106,46 @@ class UnitTest(unittest.TestCase):
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
-        self.assertTrue(YamlIo.is_valid(params['config']), "Config file is invalid!")
-        cfg = Configuration(params['config'])
+        cfg = Configuration(params[ArgumentType.ConfigFile])
+        self.assertTrue(cfg.is_valid(), "Config file is invalid!")
         cfg.read_rules()
-        cfg.set_value(params['item'], params['value'])
+        cfg.set_value(params[ArgumentType.ItemKey], params[ArgumentType.ItemValue])
         cfg.set_rules()
 
-        self.assertTrue(cfg.key_exists(params['item']), ("Item " + params['item'] + " do not exists in " +
-                                                         UnitTest.test_file + "!"))
-        configured_value = cfg.get_value(params['item'])
-        self.assertEqual(configured_value, params['value'])
+        self.assertTrue(cfg.key_exists(params[ArgumentType.ItemKey]),
+                        ("Item " + params[ArgumentType.ItemKey] + " do not exists in " + UnitTest.test_file + "!"))
+        configured_value = cfg.get_value(params[ArgumentType.ItemKey])
+        self.assertEqual(configured_value, params[ArgumentType.ItemValue])
 
     def test_file_edit_generated_ip(self):
         args = ("-E -i ip -n 192.168.100.0/25 -c " + UnitTest.test_file).split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
-        ip = Network(params['network']).get_random_value()
+        ip = Network(params[ArgumentType.Network]).get_random_value()
 
-        cfg = Configuration(params['config'])
+        cfg = Configuration(params[ArgumentType.ConfigFile])
         cfg.read_rules()
-        cfg.set_value(params['item'], ip)
+        cfg.set_value(params[ArgumentType.ItemKey], ip)
         cfg.set_rules()
         cfg.write_rules(UnitTest.test_file)
 
         cfg.read_rules()
-        self.assertEqual(ip, cfg.get_value(params['item']))
+        self.assertEqual(ip, cfg.get_value(params[ArgumentType.ItemKey]))
 
     def test_ansible_dir_count(self):
         args = "-E -d /run/media/mmatisko/Data/Documents/FEKT/DP/program/include/lamp_simple/ -i foo -v barbar".split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
-        ans_dir = AnsibleDirectory(params['dir'])
+        ans_dir = AnsibleDirectory(params[ArgumentType.AnsibleConfigDir])
         if __debug__:
-            ans_dir.iterate_directory_tree(lambda filename: print(filename.name))
+            for path, filename in ans_dir.iterate_directory_tree():
+                print(os.path.join(path, filename))
         else:
-            ans_dir.iterate_directory_tree(lambda _: None)
+            for _ in ans_dir.iterate_directory_tree():
+                pass
         result: int = ans_dir.count_files_in_tree()
-        self.assertEqual(result, 15, ("Invalid files number: " + str(result)))
+        self.assertEqual(result, 22, ("Invalid files number: " + str(result)))
 
     def test_dynamic_types_interface(self):
         self.assertTrue(issubclass(PortRange, DynamicValue))

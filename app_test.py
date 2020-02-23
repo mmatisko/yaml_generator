@@ -49,14 +49,17 @@ class AppTest(unittest.TestCase):
         self.assertTrue(AppTest.__compare_testing_folders(AppTest.template_directory, AppTest.testing_directory))
 
     def test_app_edit_mode(self):
-        args: str = '-E -c ' + AppTest.generator_config + ' -d ' + AppTest.testing_directory + '-k ntpserver -n ' \
-                                                                                               '192.168.1.0/24 '
+        args: list = ('-E -d ' + AppTest.testing_directory + ' -i ntpserver -n 192.168.1.0/30').split()
+        # args: list = ('-E -d ' + AppTest.testing_directory + ' -i httpd_port -p 81-90').split()
+        # args: list = ('-E -d ' + AppTest.testing_directory + ' -i httpd_port -p 81-90').split()
+        # args: list = ('-E -d ' + AppTest.testing_directory + ' -i repository
+        # -v http://github.com/bennojoy/mywebapp.git').split()
         main.main(args)
 
-        self.assertTrue(os.path.isdir(AppTest.output_directory))
+        self.assertTrue(os.path.isdir(AppTest.testing_directory))
 
     def test_app_generate_mode(self):
-        args: str = '-G -c ' + AppTest.generator_config + ' -d ' + AppTest.testing_directory
+        args: list = ('-G -c ' + AppTest.generator_config + ' -d ' + AppTest.testing_directory).split()
         main.main(args)
 
         self.assertTrue(os.path.isdir(AppTest.output_directory))

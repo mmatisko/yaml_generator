@@ -11,51 +11,68 @@ class ArgParser(object):
     @staticmethod
     def parse(argv):
         try:
-            opts, args = getopt.getopt(argv, "EHGc:d:h:i:n:p:s:v:")
+            opts, args = getopt.getopt(argv, "EHGc:d:f:i:n:p:v:")
         except getopt.GetoptError:
             raise ArgumentError
 
-        class AppMode(Enum):
-            Unknown = 0
-            Edit = 1
-            Generate = 2
-        mode: AppMode = AppMode.Unknown
-        params: dict = {}
+        params: dict = {ArgumentType.AppMode: AppMode.Unknown}
 
         for opt, arg in opts:
             if opt in ("-H", "--help"):
-                print("main.py -n <network> -p <ports> -c <config> -s <subnet count> -h <hosts for subnets>")
+                print("main.py -d <dir> [-n <network> | -p <ports> | -f <file for random item pick>] ..for edit mode")
+                print("main.py -d <dir> -c <config> ..for generate mode")
                 sys.exit(1)
             if opt in ("-E", "--edit"):
-                params['mode'] = "edit"
-                mode = AppMode.Edit
+                params[ArgumentType.AppMode] = AppMode.Edit
             if opt in ("-G", "--generate"):
-                params['mode'] = "generate"
-                mode = AppMode.Generate
+                params[ArgumentType.AppMode] = AppMode.Generate
 
-            if mode == AppMode.Generate or mode == AppMode.Edit:
+            if params[ArgumentType.AppMode] == AppMode.Generate or params[ArgumentType.AppMode] == AppMode.Edit:
                 if opt in ("-c", "--config"):
-                    params['config'] = arg
+                    params[ArgumentType.ConfigFile] = arg
                 if opt in ("-d", "--dir"):
-                    params['dir'] = arg
+                    params[ArgumentType.AnsibleConfigDir] = arg
 
-            if mode == AppMode.Edit:
+            if params[ArgumentType.AppMode] == AppMode.Edit:
                 if opt in ("-i", "--item"):
-                    params['item'] = arg
+                    params[ArgumentType.ItemKey] = arg
                 if opt in ("-v", "--value"):
-                    params['value'] = arg
+                    params[ArgumentType.ItemValue] = arg
 
                 if opt in ("-n", "--network"):
-                    params['network'] = arg
+                    params[ArgumentType.Network] = arg
                 if opt in ("-p", "--ports"):
-                    params['ports'] = arg
+                    params[ArgumentType.PortRange] = arg
                 if opt in ("-f", "--file"):
-                    params['file'] = arg
+                    params[ArgumentType.RandomPickFile] = arg
 
-            if mode == AppMode.Unknown:
+            if params[ArgumentType.AppMode] == AppMode.Unknown:
                 raise ArgumentModeError
 
         return params
+
+
+class AppMode(Enum):
+    Unknown = 0
+    Edit = 1
+    Generate = 2
+
+    def __str__(self):
+        return str(self.name)
+
+
+class ArgumentType(Enum):
+    AppMode = 1
+    ConfigFile = 2
+    AnsibleConfigDir = 3
+    ItemKey = 4
+    ItemValue = 5
+    Network = 6
+    PortRange = 7
+    RandomPickFile = 8
+
+    def __str__(self):
+        return str(self.name)
 
 
 class ArgumentError(getopt.GetoptError):

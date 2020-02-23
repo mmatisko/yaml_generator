@@ -1,19 +1,21 @@
-from yamlio import YamlIo
+from yamlio import NotValidYamlFileError, YamlIo
+from logger import Logger
 
 
 class Configuration(object):
     def __init__(self, path: str):
-        self.yml_object = object()
+        self.yml_object = None
         self.rules: dict = {}
         try:
             self.yml_object = YamlIo(path)
-        except FileNotFoundError:
-            print("Invalid external config path arrived!")
+        except NotValidYamlFileError:
+            Logger().get_debug_log("Not yaml file: " + path)
+            # print("Invalid external config path arrived!")
         except IOError:
             print("Unknown IO error")
 
     def is_valid(self) -> bool:
-        return Configuration.is_valid_path(self.yml_object.get_path())
+        return self.yml_object is not None and self.yml_object.is_valid()
 
     def read_rules(self):
         self.yml_object.read()
@@ -29,7 +31,12 @@ class Configuration(object):
         return self.__iterate_rules_for_get(that_key, return_value=False)
 
     def __iterate_rules_for_get(self, that_key: str, return_value: bool):
-        result = Configuration.__iterate_dict_for_get(self.rules, that_key)
+        if isinstance(self.rules, list):
+            result = Configuration.__iterate_list_for_get(working_list=self.rules, that_key=that_key)
+        elif isinstance(self.rules, dict):
+            result = Configuration.__iterate_dict_for_get(self.rules, that_key)
+        else:
+            raise ValueError("Not valid rules provided!")
         if return_value:
             return result
         else:
@@ -86,7 +93,3 @@ class Configuration(object):
 
     def get_path(self) -> str:
         return self.yml_object.get_path()
-
-    @staticmethod
-    def is_valid_path(path: str):
-        return YamlIo.is_valid(path)

@@ -2,25 +2,29 @@ from datetime import datetime
 
 
 class Logger(object):
-    def __init__(self):
-        if __debug__:
-            print("Logger has started...")
-
     @staticmethod
     def get_timestamp() -> str:
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    def get_message_with_prefix(self, prefix: str, message: str) -> str:
-        return self.get_timestamp() + " " + prefix + ": " + message
+    @staticmethod
+    def get_message_with_prefix(prefix: str, message: str) -> str:
+        return Logger.get_timestamp() + " " + prefix + ": " + message
 
-    def get_debug_log(self, message: str) -> str:
-        return self.get_message_with_prefix("[DEBUG]", message)
+    @staticmethod
+    def get_debug_log(message: str) -> str:
+        if __debug__:
+            return Logger.get_message_with_prefix("[DEBUG]", message)
+        else:
+            return ''
 
-    def get_warning_log(self, message: str) -> str:
-        return self.get_message_with_prefix("[WARNING]", message)
+    @staticmethod
+    def get_warning_log(message: str) -> str:
+        return Logger.get_message_with_prefix("[WARNING]", message)
 
-    def get_error_log(self, message: str) -> str:
-        return self.get_message_with_prefix("[ERROR]", message)
+    @staticmethod
+    def get_error_log(message: str) -> str:
+        return Logger.get_message_with_prefix("[ERROR]", message)
 
-    def get_log(self, message: str) -> str:
-        return self.get_timestamp() + " " + message
+    @staticmethod
+    def get_log(message: str) -> str:
+        return Logger.get_timestamp() + " " + message
