@@ -1,13 +1,7 @@
-from enum import Enum
+from argparser import ArgumentType
 from list_reader import ListFileReader
 from network import Network
 from portrange import PortRange
-
-
-class DynamicValueType(Enum):
-    Network = 0
-    PortRange = 1
-    File = 2
 
 
 class Singleton(object):
@@ -50,11 +44,11 @@ class DynamicTypeDetector(Singleton):
         except Exception:
             raise
 
-    def detect_type(self, value: str) -> DynamicValueType:
-        pairs: dict[DynamicValueType, object] = dict({
-            DynamicValueType.File: lambda item: self.is_file(item),
-            DynamicValueType.Network: lambda item: self.is_network(item),
-            DynamicValueType.PortRange: lambda item: self.is_port(item)
+    def detect_type(self, value: str) -> ArgumentType:
+        pairs: dict[ArgumentType, object] = dict({
+            ArgumentType.ConfigFile: lambda item: self.is_file(item),
+            ArgumentType.Network: lambda item: self.is_network(item),
+            ArgumentType.PortRange: lambda item: self.is_port(item)
         })
         try:
             for value_type, fnc in pairs.items():

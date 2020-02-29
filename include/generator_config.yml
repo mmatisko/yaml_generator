@@ -1,6 +1,9 @@
 # General settings
 general:
   - iterations: 3
+    name: YAML generator
+    input: ./testing
+    output: ./testing_output
 
 # Static values
 static:

@@ -4,6 +4,7 @@ from configuration import Configuration
 from list_reader import ListFileReader
 from network import Network
 from portrange import PortRange
+from type_detector import DynamicTypeDetector
 
 import os.path
 
@@ -29,7 +30,7 @@ class DataProcessing(object):
                     helper_obj = value(self.params[key])
                     if helper_obj.is_valid:
                         return helper_obj.get_random_value()
-                except ValueError as err:
+                except ValueError:
                     print("Generating new value error!")
 
         if ArgumentType.ItemValue in self.params.keys():
@@ -37,18 +38,50 @@ class DataProcessing(object):
         else:
             raise ValueError("No new value provided!")
 
+    @staticmethod
+    def set_value_in_file(key: str, value: str, config_path: str) -> bool:
+        config = Configuration(config_path)
+        if config.is_valid():
+            config.read_rules()
+            if config.key_exists(key):
+                config.set_value(that_key=key, new_value=value)
+                config.write_rules(config_path)
+                return True
+        return False
+
     def edit_mode_process(self):
         ans_dir = AnsibleDirectory(directory_path=self.params[ArgumentType.AnsibleConfigDir])
         for root, filename in ans_dir.iterate_directory_tree():
             full_filepath = os.path.join(root, filename)
-            ansible_file = Configuration(full_filepath)
-            if ansible_file.is_valid():
-                ansible_file.read_rules()
-                if ansible_file.key_exists(self.params[ArgumentType.ItemKey]):
-                    new_value = self.__get_new_value()
-                    ansible_file.set_value(that_key=self.params[ArgumentType.ItemKey], new_value=new_value)
-                    ansible_file.write_rules(full_filepath)
-                    return
+
+            if DataProcessing.set_value_in_file(key=self.params[ArgumentType.ItemKey], value=self.__get_new_value(),
+                                                config_path=full_filepath):
+                return
 
     def generate_mode_process(self):
-        pass
+        gen_conf = Configuration(self.params[ArgumentType.ConfigFile])
+        gen_conf.read_rules()
+        iterations = gen_conf.get_value('iterations')
+        detector = DynamicTypeDetector()
+        for index in range(iterations):
+            input_dir = self.params[ArgumentType.AnsibleConfigDir] if ArgumentType.AnsibleConfigDir \
+                in self.params.keys() else gen_conf.get_value('input')
+            output_dir = self.params[ArgumentType.OutputFolder] if ArgumentType.OutputFolder in self.params.keys() \
+                else gen_conf.get_value('input')
+            output_dir = os.path.join(output_dir, str(index))
+            AnsibleDirectory.copy_directory(src=input_dir, dst=output_dir)
+            ans_dir = AnsibleDirectory(directory_path=self.params[ArgumentType.AnsibleConfigDir])
+
+            for key, value in gen_conf.get_value('static')[0].items():
+                for root, filename in ans_dir.iterate_directory_tree():
+                    full_filepath = os.path.join(root, filename)
+                    DataProcessing.set_value_in_file(key=key, value=value, config_path=full_filepath)
+
+            for key, value in gen_conf.get_value('dynamic')[0].items():
+                value_type = detector.detect_type(value)
+
+                # TODO: add value generation
+
+                for root, filename in ans_dir.iterate_directory_tree():
+                    full_filepath = os.path.join(root, filename)
+                    DataProcessing.set_value_in_file(key=key, value=value, config_path=full_filepath)

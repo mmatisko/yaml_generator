@@ -20,11 +20,14 @@ def main(argv):
 if __name__ == "__main__":
     main(sys.argv[1:])
 
-# main.py 
+# main.py
+# -d --dir / input config directory
+# -c --config / generating mode configuration file
 # -n --network /network ip
-# -p --port /port mapping
-# -c --config /external config linking
-# -s --subnets /number of subnets
-# -f --file /list of variables to random pick from
+# -p --port / port mapping
+# -f --file / list of variables to random pick from
+# -k --key / key of edited item
+# -v --value / value of edited item
 #
-# main.py -a 192.168.10.0/24 -p 80,443 11180,11443 -s 1
+# main.py -k network|port|password -n 192.168.10.0/24 -p 11180-11443 -f passwords.txt
+# main.py -c config.yml -d input_directory/ -o output_directory/

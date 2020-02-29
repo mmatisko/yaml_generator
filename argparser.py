@@ -11,7 +11,7 @@ class ArgParser(object):
     @staticmethod
     def parse(argv):
         try:
-            opts, args = getopt.getopt(argv, "EHGc:d:f:i:n:p:v:")
+            opts, args = getopt.getopt(argv, "EHGc:d:f:k:n:p:v:")
         except getopt.GetoptError:
             raise ArgumentError
 
@@ -19,7 +19,8 @@ class ArgParser(object):
 
         for opt, arg in opts:
             if opt in ("-H", "--help"):
-                print("main.py -d <dir> [-n <network> | -p <ports> | -f <file for random item pick>] ..for edit mode")
+                print("main.py -d <dir> -k <key> [-n <network> | -p <ports> | -f <file for random item pick>] "
+                      "..for edit mode")
                 print("main.py -d <dir> -c <config> ..for generate mode")
                 sys.exit(1)
             if opt in ("-E", "--edit"):
@@ -28,13 +29,11 @@ class ArgParser(object):
                 params[ArgumentType.AppMode] = AppMode.Generate
 
             if params[ArgumentType.AppMode] == AppMode.Generate or params[ArgumentType.AppMode] == AppMode.Edit:
-                if opt in ("-c", "--config"):
-                    params[ArgumentType.ConfigFile] = arg
                 if opt in ("-d", "--dir"):
                     params[ArgumentType.AnsibleConfigDir] = arg
 
             if params[ArgumentType.AppMode] == AppMode.Edit:
-                if opt in ("-i", "--item"):
+                if opt in ("-k", "--key"):
                     params[ArgumentType.ItemKey] = arg
                 if opt in ("-v", "--value"):
                     params[ArgumentType.ItemValue] = arg
@@ -45,6 +44,12 @@ class ArgParser(object):
                     params[ArgumentType.PortRange] = arg
                 if opt in ("-f", "--file"):
                     params[ArgumentType.RandomPickFile] = arg
+
+            if params[ArgumentType.AppMode] == AppMode.Generate:
+                if opt in ("-c", "--config"):
+                    params[ArgumentType.ConfigFile] = arg
+                if opt in ("-o", "--output"):
+                    params[ArgumentType.OutputFolder] = arg
 
             if params[ArgumentType.AppMode] == AppMode.Unknown:
                 raise ArgumentModeError
@@ -70,6 +75,7 @@ class ArgumentType(Enum):
     Network = 6
     PortRange = 7
     RandomPickFile = 8
+    OutputFolder = 9
 
     def __str__(self):
         return str(self.name)
@@ -85,14 +91,3 @@ class ArgumentModeError(getopt.GetoptError):
     @staticmethod
     def what():
         return "Invalid argument mode!"
-
-# main.py 
-# -n --network /network
-# -p --ports /port mapping
-# -c --config /external config linking
-# -s --subnets /number of subnets
-# -h --hosts /number of hosts in each subnet
-# -H --help /print help 
-#
-# generate mode:
-# main.py -n 192.168.10.0/24 -p 80,443 11180,11443 -s 1 -h 1

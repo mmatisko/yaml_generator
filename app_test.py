@@ -1,3 +1,5 @@
+from ansibledir import AnsibleDirectory
+from configuration import Configuration
 import main
 
 import unittest
@@ -28,13 +30,7 @@ class AppTest(unittest.TestCase):
 
     @staticmethod
     def __prepare_testing_folder(src, dst, symlinks=False, ignore=None):
-        for item in os.listdir(src):
-            s = os.path.join(src, item)
-            d = os.path.join(dst, item)
-            if os.path.isdir(s):
-                shutil.copytree(s, d, symlinks, ignore)
-            else:
-                shutil.copy2(s, d)
+        AnsibleDirectory.copy_directory(src=src, dst=dst, symlinks=symlinks, ignore=ignore)
 
     @staticmethod
     def __compare_testing_folders(src, dst) -> bool:
@@ -49,14 +45,20 @@ class AppTest(unittest.TestCase):
         self.assertTrue(AppTest.__compare_testing_folders(AppTest.template_directory, AppTest.testing_directory))
 
     def test_app_edit_mode(self):
-        args: list = ('-E -d ' + AppTest.testing_directory + ' -i ntpserver -n 192.168.1.0/30').split()
-        # args: list = ('-E -d ' + AppTest.testing_directory + ' -i httpd_port -p 81-90').split()
-        # args: list = ('-E -d ' + AppTest.testing_directory + ' -i httpd_port -p 81-90').split()
-        # args: list = ('-E -d ' + AppTest.testing_directory + ' -i repository
+        args: list = ('-E -d ' + AppTest.testing_directory + ' -k ntpserver -n 192.168.1.4/30').split()
+        # args: list = ('-E -d ' + AppTest.testing_directory + ' -k httpd_port -p 81-90').split()
+        # args: list = ('-E -d ' + AppTest.testing_directory + ' -k httpd_port -p 81-90').split()
+        # args: list = ('-E -d ' + AppTest.testing_directory + ' -k repository
         # -v http://github.com/bennojoy/mywebapp.git').split()
         main.main(args)
 
         self.assertTrue(os.path.isdir(AppTest.testing_directory))
+
+        test_conf = Configuration('./testing/lamp_simple_centos8/group_vars/all')
+        test_conf.read_rules()
+        new_value = test_conf.get_value('ntpserver')
+        valid_values = {'192.168.1.5', '192.168.1.6'}
+        self.assertTrue(new_value in valid_values)
 
     def test_app_generate_mode(self):
         args: list = ('-G -c ' + AppTest.generator_config + ' -d ' + AppTest.testing_directory).split()

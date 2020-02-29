@@ -85,6 +85,8 @@ class Configuration(object):
                     working_dict[key] = new_value
                     return
 
+    # TODO: add set iteration for list
+
     def set_rules(self):
         self.yml_object.set_rules(self.rules)
 
