@@ -68,3 +68,10 @@ class AppTest(unittest.TestCase):
         for index in range(AppTest.iteration_count):
             self.assertTrue(AppTest.__compare_testing_folders(AppTest.template_directory,
                                                               os.path.join(AppTest.output_directory, str(index))))
+
+    def test_invalid_params(self):
+        args_mode_only: list = '-G'.split()
+        args_no_config: list = ('-G -d' + AppTest.testing_directory).split()
+
+        self.assertRaises(Exception, main.main(args_no_config))
+        self.assertRaises(Exception, main.main(args_mode_only))

@@ -1,3 +1,6 @@
+import os.path
+import unittest
+
 from ansibledir import AnsibleDirectory
 from argparser import AppMode, ArgParser, ArgumentType
 from configuration import Configuration
@@ -6,15 +9,12 @@ from list_reader import ListFileReader
 from logger import Logger
 from network import Network
 from portrange import InvalidPortRangeException, PortRange
-from type_detector import DynamicTypeDetector, DynamicValueType
-from yamlio import YamlIo
-
-import os.path
-import unittest
+from type_detector import DynamicTypeDetector
 
 
 class UnitTest(unittest.TestCase):
-    test_file: str = "/run/media/mmatisko/Data/Documents/FEKT/DP/program/include/testing/config.yml"
+    test_file: str = "./include/testing/config.yml"
+    test_file_dir: str = "./include/testing/"
     test_dir: str = "./template_config/"
 
     def test_arg_parse_generate(self):
@@ -30,7 +30,7 @@ class UnitTest(unittest.TestCase):
                          ("Invalid Ansible directory:" + params[ArgumentType.AnsibleConfigDir]))
 
     def test_arg_parse_edit(self):
-        args = "-E -i mysql_port -v 3336 -c config.yml".split()
+        args = "-E -k mysql_port -v 3336".split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
@@ -38,8 +38,6 @@ class UnitTest(unittest.TestCase):
                                                                       str(params[ArgumentType.AppMode])))
         self.assertEqual(params[ArgumentType.ItemKey], "mysql_port", ("Invalid item: " + params[ArgumentType.ItemKey]))
         self.assertEqual(params[ArgumentType.ItemValue], "3336", ("Invalid value: " + params[ArgumentType.ItemValue]))
-        self.assertEqual(params[ArgumentType.ConfigFile], "config.yml",
-                         ("Invalid config: " + params[ArgumentType.ConfigFile]))
 
     def test_logger(self):
         self.assertEqual(Logger.get_debug_log("debug"), (Logger.get_timestamp() + " [DEBUG]: debug"))
@@ -102,39 +100,51 @@ class UnitTest(unittest.TestCase):
         self.assertEqual(http_only_port_range.get_random_value(), 80)
 
     def test_file_edit_str_item(self):
-        args = ("-E -i foo -v barbar -c " + UnitTest.test_file).split()
+        args = ("-E -k foo -v barbar -d " + UnitTest.test_file_dir).split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
-        cfg = Configuration(params[ArgumentType.ConfigFile])
-        self.assertTrue(cfg.is_valid(), "Config file is invalid!")
-        cfg.read_rules()
-        cfg.set_value(params[ArgumentType.ItemKey], params[ArgumentType.ItemValue])
-        cfg.set_rules()
+        cfg = None
+        test_dir = AnsibleDirectory(params[ArgumentType.AnsibleConfigDir])
+        for root, filename in test_dir.iterate_directory_tree():
+            cfg = Configuration(os.path.join(root, filename))
+            self.assertTrue(cfg.is_valid(), "Config file is invalid!")
+            cfg.read_rules()
+            if cfg.key_exists(params[ArgumentType.ItemKey]):
+                cfg.set_value(params[ArgumentType.ItemKey], params[ArgumentType.ItemValue])
+                cfg.set_rules()
+                break
 
+        self.assertIsNotNone(cfg)
         self.assertTrue(cfg.key_exists(params[ArgumentType.ItemKey]),
                         ("Item " + params[ArgumentType.ItemKey] + " do not exists in " + UnitTest.test_file + "!"))
         configured_value = cfg.get_value(params[ArgumentType.ItemKey])
         self.assertEqual(configured_value, params[ArgumentType.ItemValue])
 
     def test_file_edit_generated_ip(self):
-        args = ("-E -i ip -n 192.168.100.0/25 -c " + UnitTest.test_file).split()
+        args = ("-E -k ip -n 192.168.100.0/25 -d " + UnitTest.test_file_dir).split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
         ip = Network(params[ArgumentType.Network]).get_random_value()
 
-        cfg = Configuration(params[ArgumentType.ConfigFile])
-        cfg.read_rules()
-        cfg.set_value(params[ArgumentType.ItemKey], ip)
-        cfg.set_rules()
-        cfg.write_rules(UnitTest.test_file)
+        cfg = None
+        test_dir = AnsibleDirectory(params[ArgumentType.AnsibleConfigDir])
+        for root, filename in test_dir.iterate_directory_tree():
+            cfg = Configuration(os.path.join(root, filename))
+            cfg.read_rules()
+            if cfg.key_exists(params[ArgumentType.ItemKey]):
+                cfg.set_value(params[ArgumentType.ItemKey], ip)
+                cfg.set_rules()
+                cfg.write_rules(UnitTest.test_file)
+                break
 
+        self.assertIsNotNone(cfg)
         cfg.read_rules()
         self.assertEqual(ip, cfg.get_value(params[ArgumentType.ItemKey]))
 
     def test_ansible_dir_count(self):
-        args = "-E -d /run/media/mmatisko/Data/Documents/FEKT/DP/program/include/lamp_simple/ -i foo -v barbar".split()
+        args = "-E -d /run/media/mmatisko/Data/Documents/FEKT/DP/program/include/lamp_simple/ -k foo -v barbar".split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
         ans_dir = AnsibleDirectory(params[ArgumentType.AnsibleConfigDir])
@@ -157,11 +167,11 @@ class UnitTest(unittest.TestCase):
 
         valid_net: str = '192.168.10.0/24'
         self.assertTrue(detector.is_network(valid_net))
-        self.assertEqual(detector.detect_type(valid_net), DynamicValueType.Network)
+        self.assertEqual(detector.detect_type(valid_net), ArgumentType.Network)
 
         valid_port: str = '1011-1012'
         self.assertTrue(detector.is_port_range(valid_port))
-        self.assertEqual(detector.detect_type(valid_port), DynamicValueType.PortRange)
+        self.assertEqual(detector.detect_type(valid_port), ArgumentType.PortRange)
 
         invalid_port: str = '80'
         with self.assertRaises(InvalidPortRangeException):
@@ -174,7 +184,7 @@ class UnitTest(unittest.TestCase):
     def test_simple_text_detection_read(self):
         detector = DynamicTypeDetector()
         valid_file: str = './include/passwords.txt'
-        self.assertEqual(detector.detect_type(valid_file), DynamicValueType.File)
+        self.assertEqual(detector.detect_type(valid_file), ArgumentType.RandomPickFile)
 
         reader = ListFileReader(valid_file)
         self.assertEqual(reader.reader.get_item_count(), 7)
@@ -185,7 +195,7 @@ class UnitTest(unittest.TestCase):
     def test_csv_detection_read(self):
         detector = DynamicTypeDetector()
         valid_file: str = './include/logins.csv'
-        self.assertEqual(detector.detect_type(valid_file), DynamicValueType.File)
+        self.assertEqual(detector.detect_type(valid_file), ArgumentType.RandomPickFile)
 
         reader = ListFileReader(valid_file)
         self.assertEqual(reader.reader.get_item_count(), 6)

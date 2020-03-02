@@ -29,5 +29,9 @@ if __name__ == "__main__":
 # -k --key / key of edited item
 # -v --value / value of edited item
 #
-# main.py -k network|port|password -n 192.168.10.0/24 -p 11180-11443 -f passwords.txt
-# main.py -c config.yml -d input_directory/ -o output_directory/
+# edit mode with static value:
+    # main.py -k key -v static_value
+# edit mode with value generation (ip/port/value from list)
+    # main.py -k network|port|password -n 192.168.10.0/24 -p 11180-11443 -f passwords.txt
+# generating mode
+    # main.py -c config.yml -d input_directory/ -o output_directory/
