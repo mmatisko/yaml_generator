@@ -32,7 +32,7 @@ class DynamicTypeDetector(Singleton):
         except Exception:
             raise
 
-    def is_port(self, value: str) -> bool:
+    def is_port_range(self, value: str) -> bool:
         try:
             return self.is_type(PortRange, value)
         except Exception:
@@ -46,9 +46,9 @@ class DynamicTypeDetector(Singleton):
 
     def detect_type(self, value: str) -> ArgumentType:
         pairs: dict[ArgumentType, object] = dict({
-            ArgumentType.ConfigFile: lambda item: self.is_file(item),
+            ArgumentType.RandomPickFile: lambda item: self.is_file(item),
             ArgumentType.Network: lambda item: self.is_network(item),
-            ArgumentType.PortRange: lambda item: self.is_port(item)
+            ArgumentType.PortRange: lambda item: self.is_port_range(item)
         })
         try:
             for value_type, fnc in pairs.items():

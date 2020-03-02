@@ -160,7 +160,7 @@ class UnitTest(unittest.TestCase):
         self.assertEqual(detector.detect_type(valid_net), DynamicValueType.Network)
 
         valid_port: str = '1011-1012'
-        self.assertTrue(detector.is_port(valid_port))
+        self.assertTrue(detector.is_port_range(valid_port))
         self.assertEqual(detector.detect_type(valid_port), DynamicValueType.PortRange)
 
         invalid_port: str = '80'

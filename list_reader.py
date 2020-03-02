@@ -83,7 +83,7 @@ class ListFileReader(DynamicValue):
             raise
 
     def __detect_type(self, path):
-        if not path.endswith('.txt') and not path.endswith('logins.csv'):
+        if not (path.endswith('.txt') or path.endswith('.csv')):
             return
 
         try:

@@ -22,7 +22,7 @@ class Configuration(object):
         self.rules = self.yml_object.get_rules()
 
     def set_value(self, that_key: str, new_value: str):
-        self.__iterate_dict_for_set(self.rules, that_key, new_value)
+        self.__iterate_rules_for_set(that_key=that_key, new_value=new_value)
 
     def get_value(self, that_key: str):
         return self.__iterate_rules_for_get(that_key, return_value=True)
@@ -37,6 +37,7 @@ class Configuration(object):
             result = Configuration.__iterate_dict_for_get(self.rules, that_key)
         else:
             raise ValueError("Not valid rules provided!")
+
         if return_value:
             return result
         else:
@@ -75,17 +76,39 @@ class Configuration(object):
         else:
             return None
 
+    def __iterate_rules_for_set(self, that_key: str, new_value: str):
+        if isinstance(self.rules, list):
+            Configuration.__iterate_list_for_set(working_list=self.rules, that_key=that_key, new_value=new_value)
+        elif isinstance(self.rules, dict):
+            Configuration.__iterate_dict_for_set(working_dict=self.rules, that_key=that_key, new_value=new_value)
+        else:
+            raise ValueError("Not valid rules provided!")
+
     @staticmethod
     def __iterate_dict_for_set(working_dict: dict, that_key: str, new_value: str):
         for key, value in working_dict.items():
-            if isinstance(value, dict):
-                Configuration.__iterate_dict_for_set(value, that_key, new_value)
+            if key == that_key:
+                working_dict[key] = new_value
+                return
             else:
-                if key == that_key:
-                    working_dict[key] = new_value
-                    return
+                Configuration.__set_iteration_subroutine(item=value, that_key=that_key, new_value=new_value)
 
-    # TODO: add set iteration for list
+    @staticmethod
+    def __iterate_list_for_set(working_list: list, that_key: str, new_value: str):
+        for index in range(len(working_list)):
+            if working_list[index] == that_key:
+                working_list[index] = new_value
+                return
+            else:
+                Configuration.__set_iteration_subroutine(item=working_list[index], that_key=that_key,
+                                                         new_value=new_value)
+
+    @staticmethod
+    def __set_iteration_subroutine(item, that_key: str, new_value: str):
+        if isinstance(item, list):
+            Configuration.__iterate_list_for_set(working_list=item, that_key=that_key, new_value=new_value)
+        elif isinstance(item, dict):
+            Configuration.__iterate_dict_for_set(working_dict=item, that_key=that_key, new_value=new_value)
 
     def set_rules(self):
         self.yml_object.set_rules(self.rules)

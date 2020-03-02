@@ -13,6 +13,8 @@ class PortRange(DynamicValue):
             raise
 
     def __parse_ports(self, ports: str):
+        if not ports[0].isdigit():
+            raise ValueError("Not a port range")
         split_ports = ports.split('-')
         if len(split_ports) != 2:
             raise InvalidPortRangeException

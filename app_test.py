@@ -11,7 +11,8 @@ class AppTest(unittest.TestCase):
     generator_config: str = './include/generator_config.yml'
     template_directory: str = './include/lamp_simple_centos8/'
     testing_directory: str = './testing/lamp_simple_centos8/'
-    output_directory: str = './testing/output/'
+    output_directory: str = './testing_output/'
+    iteration_count: int = 3
 
     def setUp(self) -> None:
         AppTest.__clean_testing_folder(AppTest.testing_directory)
@@ -26,7 +27,6 @@ class AppTest(unittest.TestCase):
     def __clean_testing_folder(path):
         if os.path.isdir(path):
             shutil.rmtree(path)
-            shutil.rmtree(path[:len(path) - 20])
 
     @staticmethod
     def __prepare_testing_folder(src, dst, symlinks=False, ignore=None):
@@ -65,6 +65,6 @@ class AppTest(unittest.TestCase):
         main.main(args)
 
         self.assertTrue(os.path.isdir(AppTest.output_directory))
-        for index in range(0, 5):
+        for index in range(AppTest.iteration_count):
             self.assertTrue(AppTest.__compare_testing_folders(AppTest.template_directory,
                                                               os.path.join(AppTest.output_directory, str(index))))
