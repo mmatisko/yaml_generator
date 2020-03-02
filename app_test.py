@@ -73,5 +73,17 @@ class AppTest(unittest.TestCase):
         args_mode_only: list = '-G'.split()
         args_no_config: list = ('-G -d' + AppTest.testing_directory).split()
 
-        self.assertRaises(Exception, main.main(args_no_config))
-        self.assertRaises(Exception, main.main(args_mode_only))
+        self.assertRaises(ValueError, main.main, args_no_config)
+        self.assertRaises(ValueError, main.main, args_mode_only)
+
+        args_mode_only: list = '-E'.split()
+        args_no_key: list = '-E -v value'.split()
+        args_no_value: list = '-E -k key -d dir'.split()
+        args_duplicate_item: list = '-E -k key -k key -v value'.split()
+        args_multiple_values: list = '-E -k key -v value -f pass_file.txt'.split()
+
+        self.assertRaises(ValueError, main.main, args_mode_only)
+        self.assertRaises(ValueError, main.main, args_no_key)
+        self.assertRaises(ValueError, main.main, args_no_value)
+        self.assertRaises(ValueError, main.main, args_duplicate_item)
+        self.assertRaises(ValueError, main.main, args_multiple_values)

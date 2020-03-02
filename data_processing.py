@@ -28,7 +28,7 @@ class DataProcessing(object):
         # dynamic argument value
         for key, value in DataProcessing.arg_type_to_obj_dict.items():
             if key in self.params.keys():
-                return DataProcessing.__get_new_value_for_type(arg_type=value, key=self.params[key])
+                return DataProcessing.__get_new_value_for_type(arg_type=key, key=self.params[key])
 
         # static argument value
         if ArgumentType.ItemValue in self.params.keys():

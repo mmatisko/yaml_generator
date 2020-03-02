@@ -56,6 +56,22 @@ class ArgParser(object):
 
         return params
 
+    @staticmethod
+    def params_are_valid(params: dict) -> bool:
+        if params[ArgumentType.AppMode] is AppMode.Generate:
+            return len(params.keys()) is 3 \
+                   and ArgumentType.AnsibleConfigDir in params.keys() \
+                   and ArgumentType.ConfigFile in params.keys()
+        elif params[ArgumentType.AppMode] is AppMode.Edit:
+            return len(params.keys()) is 4 \
+                   and ArgumentType.AnsibleConfigDir in params.keys()\
+                   and ArgumentType.ItemKey in params.keys() \
+                   and (ArgumentType.RandomPickFile in params.keys()
+                        or ArgumentType.Network in params.keys()
+                        or ArgumentType.Network in params.keys())
+        else:
+            return False
+
 
 class AppMode(Enum):
     Unknown = 0

@@ -13,8 +13,11 @@ def main(argv):
         print(err.what())
         sys.exit(2)
 
-    dp = DataProcessing(params=params)
-    dp.process()
+    if ArgParser.params_are_valid(params=params):
+        dp = DataProcessing(params=params)
+        dp.process()
+    else:
+        raise ValueError("Invalid arguments provided! See help for valid inputs")
 
 
 if __name__ == "__main__":
