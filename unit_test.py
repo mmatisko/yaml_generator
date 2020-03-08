@@ -5,6 +5,7 @@ from ansibledir import AnsibleDirectory
 from argparser import AppMode, ArgParser, ArgumentType
 from configuration import Configuration
 from dynamic_value import DynamicValue
+from iterator_regex import IteratorRegex
 from list_reader import ListFileReader
 from logger import Logger
 from network import Network
@@ -215,6 +216,32 @@ class UnitTest(unittest.TestCase):
         self.assertTrue(config.key_exists('static'))
         self.assertTrue(config.key_exists('dynamic'))
         self.assertTrue(config.key_exists('iterations'))
+
+    def test_iterator_regex(self):
+        self.assertTrue(IteratorRegex.is_iterator_regex('<#>'))
+        self.assertIs(IteratorRegex('<#>', 0).value, 0)
+
+        self.assertTrue(IteratorRegex.is_iterator_regex('<#+1>'))
+        self.assertIs(IteratorRegex('<#+1>', 1).value, 2)
+
+        self.assertTrue(IteratorRegex.is_iterator_regex('<#-1>'))
+        self.assertIs(IteratorRegex('<#-1>', 2).value, 1)
+
+        self.assertTrue(IteratorRegex.is_iterator_regex('<#*2>'))
+        self.assertIs(IteratorRegex('<#*2>', 2).value, 4)
+
+        self.assertTrue(IteratorRegex.is_iterator_regex('<#/2>'))
+        self.assertIs(IteratorRegex('<#/2>', 4).value, 2)
+
+        self.assertTrue(IteratorRegex.is_iterator_regex('<#%2>'))
+        self.assertIs(IteratorRegex('<#%2>', 3).value, 1)
+
+    def test_iterator_invalid_regex(self):
+        self.assertFalse(IteratorRegex.is_iterator_regex('<##>'))
+        self.assertFalse(IteratorRegex.is_iterator_regex('<#++2>'))
+        self.assertFalse(IteratorRegex.is_iterator_regex('<>'))
+        self.assertFalse(IteratorRegex.is_iterator_regex('<#%x>'))
+        self.assertFalse(IteratorRegex.is_iterator_regex('<#xx>'))
 
 
 if __name__ == '__main__':
