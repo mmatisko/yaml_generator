@@ -1,7 +1,8 @@
-import sys
-
 from argparser import ArgParser, ArgumentError, ArgumentModeError
 from data_processing import DataProcessing
+from logger import Logger
+
+import sys
 
 
 def main(argv):
@@ -17,6 +18,7 @@ def main(argv):
         dp = DataProcessing(params=params)
         dp.process()
     else:
+        print(Logger.get_error_log(argv))
         raise ValueError("Invalid arguments provided! See help for valid inputs")
 
 

@@ -81,7 +81,7 @@ class DataProcessing(object):
                 else gen_conf.get_value('output')
             output_dir = os.path.join(output_dir, str(index))
             AnsibleDirectory.copy_directory(src=input_dir, dst=output_dir)
-            ans_dir = AnsibleDirectory(directory_path=self.params[ArgumentType.AnsibleConfigDir])
+            ans_dir = AnsibleDirectory(directory_path=input_dir)
 
             for key, value in gen_conf.get_value('static')[0].items():
                 for root, filename in ans_dir.iterate_directory_tree():

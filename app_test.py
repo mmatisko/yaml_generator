@@ -87,3 +87,9 @@ class AppTest(unittest.TestCase):
         self.assertRaises(ValueError, main.main, args_no_value)
         self.assertRaises(ValueError, main.main, args_duplicate_item)
         self.assertRaises(ValueError, main.main, args_multiple_values)
+
+
+if __name__ == "__main__":
+    tester = AppTest()
+    tester.test_app_edit_mode()
+    tester.test_app_generate_mode()

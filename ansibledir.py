@@ -1,3 +1,5 @@
+from logger import Logger
+
 import os
 import os.path
 import shutil
@@ -29,10 +31,16 @@ class AnsibleDirectory(object):
 
     @staticmethod
     def copy_directory(src: str, dst: str, symlinks=False, ignore=None):
-        for item in os.listdir(src):
-            s = os.path.join(src, item)
-            d = os.path.join(dst, item)
-            if os.path.isdir(s):
-                shutil.copytree(s, d, symlinks, ignore)
-            else:
-                shutil.copy2(s, d)
+        if os.path.isdir(src):
+            if not os.path.isdir(dst):
+                os.mkdir(dst)
+            for item in os.listdir(src):
+                s = os.path.join(src, item)
+                d = os.path.join(dst, item)
+                if os.path.isdir(s):
+                    shutil.copytree(s, d, symlinks, ignore)
+                else:
+                    shutil.copy2(s, d)
+        else:
+            print(Logger.get_error_log("src: " + src + ", dst:" + dst))
+            raise FileNotFoundError
