@@ -1,5 +1,6 @@
 from logger import Logger
 
+from datetime import datetime
 import os
 import os.path
 import shutil
@@ -44,3 +45,16 @@ class AnsibleDirectory(object):
         else:
             print(Logger.get_error_log("src: " + src + ", dst:" + dst))
             raise FileNotFoundError
+
+    @staticmethod
+    def create_dst_directory(dst: str) -> str:
+        if not os.path.isdir(dst):
+            try:
+                os.mkdir(dst)
+            except Exception:
+                raise
+        dateTimeObj = datetime.now()
+        timestampStr = dateTimeObj.strftime("%d-%m-%Y_%H:%M:%S")
+        dst_folder = os.path.join(dst, timestampStr)
+        os.mkdir(dst_folder)
+        return dst_folder

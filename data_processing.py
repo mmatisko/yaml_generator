@@ -74,14 +74,17 @@ class DataProcessing(object):
         gen_conf.read_rules()
         iterations = gen_conf.get_value('iterations')
         detector = DynamicTypeDetector()
+
+        input_dir = self.params[ArgumentType.AnsibleConfigDir] if ArgumentType.AnsibleConfigDir in self.params.keys() \
+            else gen_conf.get_value('input')
+        output_dir = self.params[ArgumentType.OutputFolder] if ArgumentType.OutputFolder in self.params.keys() \
+            else gen_conf.get_value('output')
+        output_dir_with_timestamp = AnsibleDirectory.create_dst_directory(dst=output_dir)
+
         for index in range(iterations):
-            input_dir = self.params[ArgumentType.AnsibleConfigDir] if ArgumentType.AnsibleConfigDir \
-                in self.params.keys() else gen_conf.get_value('input')
-            output_dir = self.params[ArgumentType.OutputFolder] if ArgumentType.OutputFolder in self.params.keys() \
-                else gen_conf.get_value('output')
-            output_dir = os.path.join(output_dir, str(index))
-            AnsibleDirectory.copy_directory(src=input_dir, dst=output_dir)
-            ans_dir = AnsibleDirectory(directory_path=input_dir)
+            output_dir_full_path = os.path.join(output_dir_with_timestamp, str(index))
+            AnsibleDirectory.copy_directory(src=input_dir, dst=output_dir_full_path)
+            ans_dir = AnsibleDirectory(directory_path=output_dir_full_path)
 
             for key, value in gen_conf.get_value('static')[0].items():
                 for root, filename in ans_dir.iterate_directory_tree():
