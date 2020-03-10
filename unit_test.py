@@ -242,6 +242,10 @@ class UnitTest(unittest.TestCase):
         self.assertFalse(IteratorRegex.is_iterator_regex('<>'))
         self.assertFalse(IteratorRegex.is_iterator_regex('<#%x>'))
         self.assertFalse(IteratorRegex.is_iterator_regex('<#xx>'))
+        self.assertFalse(IteratorRegex.is_iterator_regex('<#+>'))
+        self.assertFalse(IteratorRegex.is_iterator_regex('<#2>'))
+        self.assertFalse(IteratorRegex.is_iterator_regex('<#+123456>'))
+        self.assertFalse(IteratorRegex.is_iterator_regex('<#+0.2>'))
 
 
 if __name__ == '__main__':

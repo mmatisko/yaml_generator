@@ -18,5 +18,4 @@ class IteratorRegex:
 
     @staticmethod
     def is_iterator_regex(input_str: str) -> bool:
-        pattern = re.compile("^<#[+\-*\/%]?\d?>$")
-        return bool(pattern.match(input_str))
+        return bool(re.match("^<#([+\-*/%](\d{1,5}))?>$", input_str))
