@@ -20,7 +20,7 @@ class AppTest(unittest.TestCase):
         AppTest.__prepare_testing_folder(src=AppTest.template_directory, dst=AppTest.testing_directory)
 
     def tearDown(self) -> None:
-        AppTest.__clean_testing_folder(AppTest.testing_directory)
+        AppTest.__clean_testing_folder(AppTest.testing_directory[:10])
         AppTest.__clean_testing_folder(AppTest.output_directory)
 
     @staticmethod

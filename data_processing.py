@@ -1,6 +1,7 @@
 from ansibledir import AnsibleDirectory
 from argparser import AppMode, ArgumentType
 from configuration import Configuration
+from iterator_regex import IteratorRegex
 from list_reader import ListFileReader
 from logger import Logger
 from network import Network
@@ -65,9 +66,17 @@ class DataProcessing(object):
         for root, filename in ans_dir.iterate_directory_tree():
             full_filepath = os.path.join(root, filename)
 
-            if DataProcessing.set_value_in_file(key=self.params[ArgumentType.ItemKey], value=self.__get_new_value(),
+            if DataProcessing.set_value_in_file(key=self.params[ArgumentType.ItemKey],
+                                                value=self.__get_new_value(),
                                                 config_path=full_filepath):
                 return
+
+    @staticmethod
+    def preproccess_string(item_value: str, iteration: int) -> str:
+        if IteratorRegex.is_iterator_regex(item_value):
+            return IteratorRegex(input_value=item_value, iteration=iteration).value
+        else:
+            return item_value
 
     def generate_mode_process(self):
         gen_conf = Configuration(self.params[ArgumentType.ConfigFile])
@@ -87,11 +96,13 @@ class DataProcessing(object):
             ans_dir = AnsibleDirectory(directory_path=output_dir_full_path)
 
             for key, value in gen_conf.get_value('static')[0].items():
+                value = DataProcessing.preproccess_string(item_value=value, iteration=index)
                 for root, filename in ans_dir.iterate_directory_tree():
                     full_filepath = os.path.join(root, filename)
                     DataProcessing.set_value_in_file(key=key, value=value, config_path=full_filepath)
 
             for key, value in gen_conf.get_value('dynamic')[0].items():
+                value = DataProcessing.preproccess_string(item_value=value, iteration=index)
                 value_type = detector.detect_type(value)
                 new_value = DataProcessing.__get_new_value_for_type(arg_type=value_type, key=value)
 
