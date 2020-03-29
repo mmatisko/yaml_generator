@@ -1,57 +1,34 @@
 from ansibledir import AnsibleDirectory
 from argparser import AppMode, ArgumentType
 from configuration import Configuration
-from iterator_regex import IteratorRegex
-from list_reader import ListFileReader
-from logger import Logger
-from network import Network
-from portrange import PortRange
-from type_detector import DynamicTypeDetector
+from generator_rule import GeneratorRule, GeneratorRuleType
 
 import os.path
 
 
 class DataProcessing(object):
-    arg_type_to_obj_dict: dict = {ArgumentType.Network: Network,
-                                  ArgumentType.PortRange: PortRange,
-                                  ArgumentType.RandomPickFile: ListFileReader}
-
     def __init__(self, params: dict):
         self.params: dict = params
 
     def process(self):
         if self.params[ArgumentType.AppMode] is AppMode.Edit:
-            self.edit_mode_process()
+            self.__edit_mode_process()
         else:
-            self.generate_mode_process()
-
-    def __get_new_value(self) -> str:
-        # dynamic argument value
-        for key, value in DataProcessing.arg_type_to_obj_dict.items():
-            if key in self.params.keys():
-                return DataProcessing.__get_new_value_for_type(arg_type=key, key=self.params[key])
-
-        # static argument value
-        if ArgumentType.ItemValue in self.params.keys():
-            return self.params[ArgumentType.ItemValue]
-        else:
-            raise ValueError("No new value provided!")
+            self.__generate_mode_process()
 
     @staticmethod
-    def __get_new_value_for_type(arg_type: ArgumentType, key: str):
-        if arg_type in {ArgumentType.Network, ArgumentType.PortRange, ArgumentType.RandomPickFile}:
-            try:
-                value = DataProcessing.arg_type_to_obj_dict[arg_type]
-                helper_obj = value(key)
-                if helper_obj.is_valid:
-                    return helper_obj.get_random_value()
-            except ValueError:
-                Logger.get_error_log("Generating value error!")
+    def __get_dynamic_rule_key(params: dict) -> ArgumentType:
+        if ArgumentType.Network in params:
+            return ArgumentType.Network
+        elif ArgumentType.PortRange in params:
+            return ArgumentType.PortRange
+        elif ArgumentType.RandomPickFile in params:
+            return ArgumentType.RandomPickFile
         else:
-            raise ValueError("Unsupported argument type provided!")
+            return None
 
     @staticmethod
-    def set_value_in_file(key: str, value: str, config_path: str) -> bool:
+    def __set_value_in_file(key: str, value: str, config_path: str) -> bool:
         config = Configuration(config_path)
         if config.is_valid():
             config.read_rules()
@@ -61,28 +38,30 @@ class DataProcessing(object):
                 return True
         return False
 
-    def edit_mode_process(self):
+    def __edit_mode_process(self):
         ans_dir = AnsibleDirectory(directory_path=self.params[ArgumentType.AnsibleConfigDir])
         for root, filename in ans_dir.iterate_directory_tree():
             full_filepath = os.path.join(root, filename)
 
-            if DataProcessing.set_value_in_file(key=self.params[ArgumentType.ItemKey],
-                                                value=self.__get_new_value(),
-                                                config_path=full_filepath):
+            new_value_type = self.__get_dynamic_rule_key(self.params)
+
+            new_value = self.params[new_value_type] if new_value_type is not None \
+                else self.params[ArgumentType.ItemValue]
+
+            arg_type = GeneratorRuleType.Dynamic if new_value_type is not None else GeneratorRuleType.Static
+            new_value = new_value if new_value is not None else self.params[ArgumentType.ItemValue]
+            gen_rule = GeneratorRule(name=self.params[ArgumentType.ItemKey], value=new_value, rule_type=arg_type)
+
+            if DataProcessing.__set_value_in_file(key=self.params[ArgumentType.ItemKey],
+                                                  value=gen_rule.get_value(0),
+                                                  config_path=full_filepath):
                 return
 
-    @staticmethod
-    def preproccess_string(item_value: str, iteration: int) -> str:
-        if IteratorRegex.is_iterator_regex(item_value):
-            return IteratorRegex(input_value=item_value, iteration=iteration).value
-        else:
-            return item_value
-
-    def generate_mode_process(self):
+    def __generate_mode_process(self):
         gen_conf = Configuration(self.params[ArgumentType.ConfigFile])
         gen_conf.read_rules()
         iterations = gen_conf.get_value('iterations')
-        detector = DynamicTypeDetector()
+        jinja_files = set()
 
         input_dir = self.params[ArgumentType.AnsibleConfigDir] if ArgumentType.AnsibleConfigDir in self.params.keys() \
             else gen_conf.get_value('input')
@@ -90,22 +69,28 @@ class DataProcessing(object):
             else gen_conf.get_value('output')
         output_dir_with_timestamp = AnsibleDirectory.create_dst_directory(dst=output_dir)
 
-        for index in range(iterations):
-            output_dir_full_path = os.path.join(output_dir_with_timestamp, str(index))
+        rules: list = []
+        for key, value in gen_conf.get_value('static')[0].items():
+            rules.append(GeneratorRule(name=key, value=value, rule_type=GeneratorRuleType.Static))
+        for key, value in gen_conf.get_value('dynamic')[0].items():
+            rules.append(GeneratorRule(name=key, value=value, rule_type=GeneratorRuleType.Dynamic))
+
+        for iteration_index in range(iterations):
+            output_dir_full_path = os.path.join(output_dir_with_timestamp, str(iteration_index))
             AnsibleDirectory.copy_directory(src=input_dir, dst=output_dir_full_path)
             ans_dir = AnsibleDirectory(directory_path=output_dir_full_path)
 
-            for key, value in gen_conf.get_value('static')[0].items():
-                value = DataProcessing.preproccess_string(item_value=value, iteration=index)
+            if len(jinja_files) is 0:
                 for root, filename in ans_dir.iterate_directory_tree():
                     full_filepath = os.path.join(root, filename)
-                    DataProcessing.set_value_in_file(key=key, value=value, config_path=full_filepath)
-
-            for key, value in gen_conf.get_value('dynamic')[0].items():
-                value = DataProcessing.preproccess_string(item_value=value, iteration=index)
-                value_type = detector.detect_type(value)
-                new_value = DataProcessing.__get_new_value_for_type(arg_type=value_type, key=value)
-
-                for root, filename in ans_dir.iterate_directory_tree():
-                    full_filepath = os.path.join(root, filename)
-                    DataProcessing.set_value_in_file(key=key, value=new_value, config_path=full_filepath)
+                    for rule in rules:
+                        if (DataProcessing.__set_value_in_file(key=rule.name,
+                                                               value=rule.get_value(iteration_index),
+                                                               config_path=full_filepath)):
+                            jinja_files.add(full_filepath)
+            else:
+                for full_jinja_path in jinja_files:
+                    for rule in rules:
+                        DataProcessing.__set_value_in_file(key=rule.name,
+                                                           value=rule.get_value(iteration_index),
+                                                           config_path=full_jinja_path)

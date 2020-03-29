@@ -4,10 +4,6 @@ import sys
 
 
 class ArgParser(object):
-    def __init__(self):
-        if __debug__:
-            print("Arg Parse has started...")
-
     @staticmethod
     def parse(argv):
         try:
@@ -28,7 +24,7 @@ class ArgParser(object):
             if opt in ("-G", "--generate"):
                 params[ArgumentType.AppMode] = AppMode.Generate
 
-            if params[ArgumentType.AppMode] == AppMode.Generate or params[ArgumentType.AppMode] == AppMode.Edit:
+            if params[ArgumentType.AppMode] in [AppMode.Generate, AppMode.Edit]:
                 if opt in ("-d", "--dir"):
                     params[ArgumentType.AnsibleConfigDir] = arg
 
@@ -68,7 +64,8 @@ class ArgParser(object):
                    and ArgumentType.ItemKey in params.keys() \
                    and (ArgumentType.RandomPickFile in params.keys()
                         or ArgumentType.Network in params.keys()
-                        or ArgumentType.Network in params.keys())
+                        or ArgumentType.PortRange in params.keys()
+                        or ArgumentType.ItemValue in params.keys())
         else:
             return False
 

@@ -17,29 +17,29 @@ class ListFileReader(DynamicValue):
 
     class __CsvReader(__AbstractReader):
         def __init__(self, path: str):
-            self.path = path
-            self.item_count = -1
-            self.dialect = None
+            self.__path = path
+            self.__item_count = -1
+            self.__dialect = None
             with open(path, 'r') as detected_file:
                 try:
                     dialect = csv.Sniffer().sniff(detected_file.read(32))
-                    self.dialect = dialect
+                    self.__dialect = dialect
                     detected_file.seek(0)
-                except csv.Error as e:
+                except csv.Error:
                     raise
 
         def get_item_count(self):
-            if self.item_count is -1:
-                self.item_count = 0
-                with open(self.path, "r") as f:
-                    reader = csv.reader(f, dialect=self.dialect, delimiter=self.dialect.delimiter)
+            if self.__item_count is -1:
+                self.__item_count = 0
+                with open(self.__path, "r") as f:
+                    reader = csv.reader(f, dialect=self.__dialect, delimiter=self.__dialect.delimiter)
                     for row in reader:
-                        self.item_count += len(row)
-            return self.item_count
+                        self.__item_count += len(row)
+            return self.__item_count
 
         def read_value(self, index: int):
-            with open(self.path, "r") as f:
-                reader = csv.reader(f, dialect=self.dialect, delimiter=self.dialect.delimiter)
+            with open(self.__path, "r") as f:
+                reader = csv.reader(f, dialect=self.__dialect, delimiter=self.__dialect.delimiter)
                 counter: int = 0
                 for row in reader:
                     if (counter + len(row)) <= index:
@@ -49,59 +49,63 @@ class ListFileReader(DynamicValue):
 
     class __SingleLineItemReader(__AbstractReader):
         def __init__(self, path):
-            self.path = path
-            self.item_count = -1
+            self.__path = path
+            self.__item_count = -1
             with open(path, 'r') as detected_file:
                 line = detected_file.readline()
                 if ' ' in line or not line.endswith('\n'):
                     raise ValueError
 
         def get_item_count(self):
-            if self.item_count is not -1:
-                return self.item_count
+            if self.__item_count is not -1:
+                return self.__item_count
             else:
-                with open(self.path, 'r') as read_file:
+                with open(self.__path, 'r') as read_file:
                     line_index = 0
                     while read_file.readline() is not '':
                         line_index += 1
                 return line_index
 
         def read_value(self, index: int):
-            with open(self.path, 'r') as read_file:
+            with open(self.__path, 'r') as read_file:
                 for i in range(0, index):
                     _ = read_file.readline()
                 return read_file.readline().strip()
 
     def __init__(self, path: str):
-        self.used_items: set = set()
-        self.reader: ListFileReader.__AbstractReader = None
+        self.__used_items: set = set()
+        self.__reader: ListFileReader.__AbstractReader = None
         try:
             if not isfile(path):
                 raise ValueError
-            self.__detect_type(path)
+            self._detect_type(path)
         except Exception:
             raise
 
-    def __detect_type(self, path):
+    def _detect_type(self, path):
         if not (path.endswith('.txt') or path.endswith('.csv')):
             return
 
         try:
-            self.reader = ListFileReader.__CsvReader(path)
-        except Exception as a:
+            self.__reader = ListFileReader.__CsvReader(path)
+        except Exception:
             try:
-                self.reader = ListFileReader.__SingleLineItemReader(path)
+                self.__reader = ListFileReader.__SingleLineItemReader(path)
             except Exception:
                 raise
 
     @property
+    def reader(self):
+        return self.__reader
+
+    @property
     def is_valid(self) -> bool:
-        return self.reader is not None
+        return self.__reader is not None
 
     def get_random_value(self) -> str:
-        item_count: int = self.reader.get_item_count()
+        item_count: int = self.__reader.get_item_count()
         random_item: int = -1
-        while random_item == -1 or random_item in self.used_items:
+        while random_item == -1 or random_item in self.__used_items:
             random_item = randint(0, item_count - 1)
-        self.used_items.add(random_item)
-        return self.reader.read_value(random_item)
+        self.__used_items.add(random_item)
+        return self.__reader.read_value(random_item)

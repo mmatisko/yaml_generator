@@ -14,20 +14,20 @@ from type_detector import DynamicTypeDetector
 
 
 class UnitTest(unittest.TestCase):
-    test_file: str = "./include/testing/config.yml"
-    test_file_dir: str = "./include/testing/"
-    test_dir: str = "./template_config/"
+    __test_file: str = "./include/testing/config.yml"
+    __test_file_dir: str = "./include/testing/"
+    __test_dir: str = "./template_config/"
 
     def test_arg_parse_generate(self):
-        args = ("-G -c " + UnitTest.test_file + " -d " + UnitTest.test_dir).split()
+        args = ("-G -c " + UnitTest.__test_file + " -d " + UnitTest.__test_dir).split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
         self.assertEqual(params[ArgumentType.AppMode], AppMode.Generate, 
                          ("Invalid mode: " + str(params[ArgumentType.AppMode])))
-        self.assertEqual(params[ArgumentType.ConfigFile], UnitTest.test_file, 
+        self.assertEqual(params[ArgumentType.ConfigFile], UnitTest.__test_file,
                          ("Invalid config: " + params[ArgumentType.ConfigFile]))
-        self.assertEqual(params[ArgumentType.AnsibleConfigDir], UnitTest.test_dir, 
+        self.assertEqual(params[ArgumentType.AnsibleConfigDir], UnitTest.__test_dir,
                          ("Invalid Ansible directory:" + params[ArgumentType.AnsibleConfigDir]))
 
     def test_arg_parse_edit(self):
@@ -71,9 +71,9 @@ class UnitTest(unittest.TestCase):
         self.assertRaises(ValueError, Network, "192.168.255.255/24")
 
     def test_external_config(self):
-        external_cfg = Configuration(UnitTest.test_file)
+        external_cfg = Configuration(UnitTest.__test_file)
         self.assertTrue(external_cfg.is_valid())
-        self.assertEqual(external_cfg.get_path(), UnitTest.test_file, ("Invalid path: " + external_cfg.get_path()))
+        self.assertEqual(external_cfg.get_path(), UnitTest.__test_file, ("Invalid path: " + external_cfg.get_path()))
         external_cfg.read_rules()
         item = "foo"
         backup_value = external_cfg.get_value(item)
@@ -101,7 +101,7 @@ class UnitTest(unittest.TestCase):
         self.assertEqual(http_only_port_range.get_random_value(), 80)
 
     def test_file_edit_str_item(self):
-        args = ("-E -k foo -v barbar -d " + UnitTest.test_file_dir).split()
+        args = ("-E -k foo -v barbar -d " + UnitTest.__test_file_dir).split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
@@ -118,12 +118,12 @@ class UnitTest(unittest.TestCase):
 
         self.assertIsNotNone(cfg)
         self.assertTrue(cfg.key_exists(params[ArgumentType.ItemKey]),
-                        ("Item " + params[ArgumentType.ItemKey] + " do not exists in " + UnitTest.test_file + "!"))
+                        ("Item " + params[ArgumentType.ItemKey] + " do not exists in " + UnitTest.__test_file + "!"))
         configured_value = cfg.get_value(params[ArgumentType.ItemKey])
         self.assertEqual(configured_value, params[ArgumentType.ItemValue])
 
     def test_file_edit_generated_ip(self):
-        args = ("-E -k ip -n 192.168.100.0/25 -d " + UnitTest.test_file_dir).split()
+        args = ("-E -k ip -n 192.168.100.0/25 -d " + UnitTest.__test_file_dir).split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
@@ -137,7 +137,7 @@ class UnitTest(unittest.TestCase):
             if cfg.key_exists(params[ArgumentType.ItemKey]):
                 cfg.set_value(params[ArgumentType.ItemKey], ip)
                 cfg.set_rules()
-                cfg.write_rules(UnitTest.test_file)
+                cfg.write_rules(UnitTest.__test_file)
                 break
 
         self.assertIsNotNone(cfg)
@@ -219,22 +219,22 @@ class UnitTest(unittest.TestCase):
 
     def test_iterator_regex(self):
         self.assertTrue(IteratorRegex.is_iterator_regex('<#>'))
-        self.assertIs(IteratorRegex('<#>', 0).value, 0)
+        self.assertIs(IteratorRegex('<#>', 0).number, 0)
 
         self.assertTrue(IteratorRegex.is_iterator_regex('<#+1>'))
-        self.assertIs(IteratorRegex('<#+1>', 1).value, 2)
+        self.assertIs(IteratorRegex('<#+1>', 1).number, 2)
 
         self.assertTrue(IteratorRegex.is_iterator_regex('<#-1>'))
-        self.assertIs(IteratorRegex('<#-1>', 2).value, 1)
+        self.assertIs(IteratorRegex('<#-1>', 2).number, 1)
 
         self.assertTrue(IteratorRegex.is_iterator_regex('<#*2>'))
-        self.assertIs(IteratorRegex('<#*2>', 2).value, 4)
+        self.assertIs(IteratorRegex('<#*2>', 2).number, 4)
 
         self.assertTrue(IteratorRegex.is_iterator_regex('<#/2>'))
-        self.assertIs(IteratorRegex('<#/2>', 4).value, 2)
+        self.assertIs(IteratorRegex('<#/2>', 4).number, 2)
 
         self.assertTrue(IteratorRegex.is_iterator_regex('<#%2>'))
-        self.assertIs(IteratorRegex('<#%2>', 3).value, 1)
+        self.assertIs(IteratorRegex('<#%2>', 3).number, 1)
 
     def test_iterator_invalid_regex(self):
         self.assertFalse(IteratorRegex.is_iterator_regex('<##>'))

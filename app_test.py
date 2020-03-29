@@ -8,20 +8,20 @@ import shutil
 
 
 class AppTest(unittest.TestCase):
-    generator_config: str = './include/generator_config.yml'
-    template_directory: str = './include/lamp_simple_centos8/'
-    testing_directory: str = './testing/lamp_simple_centos8/'
-    output_directory: str = './testing_output/'
-    iteration_count: int = 3
+    __generator_config: str = './include/generator_config.yml'
+    __template_directory: str = './include/lamp_simple_centos8/'
+    __testing_directory: str = './testing/lamp_simple_centos8/'
+    __output_directory: str = './testing_output/'
+    __iteration_count: int = 3
 
     def setUp(self) -> None:
-        AppTest.__clean_testing_folder(AppTest.testing_directory)
-        AppTest.__clean_testing_folder(AppTest.output_directory)
-        AppTest.__prepare_testing_folder(src=AppTest.template_directory, dst=AppTest.testing_directory)
+        AppTest.__clean_testing_folder(AppTest.__testing_directory)
+        AppTest.__clean_testing_folder(AppTest.__output_directory)
+        AppTest.__prepare_testing_folder(src=AppTest.__template_directory, dst=AppTest.__testing_directory)
 
     def tearDown(self) -> None:
-        AppTest.__clean_testing_folder(AppTest.testing_directory[:10])
-        AppTest.__clean_testing_folder(AppTest.output_directory)
+        AppTest.__clean_testing_folder(AppTest.__testing_directory[:10])
+        AppTest.__clean_testing_folder(AppTest.__output_directory)
 
     @staticmethod
     def __clean_testing_folder(path):
@@ -42,33 +42,34 @@ class AppTest(unittest.TestCase):
         return True
 
     def test_testing_folder_methods(self):
-        self.assertTrue(AppTest.__compare_testing_folders(AppTest.template_directory, AppTest.testing_directory))
+        self.assertTrue(AppTest.__compare_testing_folders(AppTest.__template_directory, AppTest.__testing_directory))
 
     def test_app_edit_mode(self):
-        args: list = ('-E -d ' + AppTest.testing_directory + ' -k ntpserver -n 192.168.1.4/30').split()
-        # args: list = ('-E -d ' + AppTest.testing_directory + ' -k httpd_port -p 81-90').split()
-        # args: list = ('-E -d ' + AppTest.testing_directory + ' -k httpd_port -p 81-90').split()
-        # args: list = ('-E -d ' + AppTest.testing_directory + ' -k repository
-        # -v http://github.com/bennojoy/mywebapp.git').split()
-        main.main(args)
+        args: list = {('ntpserver', '-n 192.168.1.4/30', ('192.168.1.5', '192.168.1.6')),
+                      ('httpd_port', '-p 81-85', (81, 82, 83, 84, 85)),
+                      ('repository', '-v http://github.com/bennojoy/mywebapp.git',
+                       ('http://github.com/bennojoy/mywebapp.git',))
+                      }
 
-        self.assertTrue(os.path.isdir(AppTest.testing_directory))
+        for key, value, expected_values in args:
+            program_args = ('-E -d ' + AppTest.__testing_directory + ' -k ' + key + ' ' + value).split()
+            main.main(program_args)
 
-        test_conf = Configuration('./testing/lamp_simple_centos8/group_vars/all')
-        test_conf.read_rules()
-        new_value = test_conf.get_value('ntpserver')
-        valid_values = {'192.168.1.5', '192.168.1.6'}
-        self.assertTrue(new_value in valid_values)
+            self.assertTrue(os.path.isdir(AppTest.__testing_directory))
+            test_conf = Configuration('./testing/lamp_simple_centos8/group_vars/all')
+            test_conf.read_rules()
+            new_value = test_conf.get_value(key)
+            self.assertTrue(new_value in expected_values)
 
     def test_app_generate_mode(self):
-        args: list = ('-G -c ' + AppTest.generator_config + ' -d ' + AppTest.testing_directory).split()
+        args: list = ('-G -c ' + AppTest.__generator_config + ' -d ' + AppTest.__testing_directory).split()
         main.main(args)
 
-        self.assertTrue(os.path.isdir(AppTest.output_directory))
+        self.assertTrue(os.path.isdir(AppTest.__output_directory))
 
     def test_invalid_params(self):
         args_mode_only: list = '-G'.split()
-        args_no_config: list = ('-G -d' + AppTest.testing_directory).split()
+        args_no_config: list = ('-G -d' + AppTest.__testing_directory).split()
 
         self.assertRaises(ValueError, main.main, args_no_config)
         self.assertRaises(ValueError, main.main, args_mode_only)

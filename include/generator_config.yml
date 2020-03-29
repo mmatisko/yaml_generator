@@ -1,13 +1,13 @@
 # General settings
 general:
-  - iterations: 3
+  - iterations: 30
     name: YAML generator
     input: ./testing/lamp_simple_centos8/
     output: ./testing_output/
 
 # Static values
 static:
-  - name: "Test"
+  - repository: "http://github.com/bennojoy/mywebapp.git"
 
 # Dynamic values
 dynamic:

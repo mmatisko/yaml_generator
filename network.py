@@ -5,15 +5,15 @@ from random import getrandbits
 
 class Network(DynamicValue):
     def __init__(self, network_ip: str):
-        self.network_ip = None
+        self._network_ip = None
         try:
-            self.network_ip = ip_network(network_ip)
+            self._network_ip = ip_network(network_ip)
         except ValueError:
             raise
 
     @property
     def is_valid(self) -> bool:
-        return self.network_ip is not None
+        return self._network_ip is not None
 
     def get_random_value(self) -> str:
         random_ip = str(self.get_random_values(1))
@@ -22,13 +22,13 @@ class Network(DynamicValue):
     def get_random_values(self, count: int) -> set:
         results: set = set()
         while len(results) < count:
-            host_prefix = self.network_ip.max_prefixlen - self.network_ip.prefixlen
+            host_prefix = self._network_ip.max_prefixlen - self._network_ip.prefixlen
             bits = getrandbits(host_prefix)
             if bits is 0 or bits is (pow(2, host_prefix) - 1):
                 continue
-            addr = ip_address(self.network_ip.network_address + bits)
+            addr = ip_address(self._network_ip.network_address + bits)
             results.add(str(addr))
         return results
 
     def is_address_in_network(self, address: str) -> bool:
-        return ip_address(address) in self.network_ip
+        return ip_address(address) in self._network_ip

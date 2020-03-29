@@ -4,10 +4,10 @@ from logger import Logger
 
 class Configuration(object):
     def __init__(self, path: str):
-        self.yml_object = None
-        self.rules: dict = {}
+        self.__yml_object = None
+        self.__rules: dict = {}
         try:
-            self.yml_object = YamlIo(path)
+            self.__yml_object = YamlIo(path)
         except NotValidYamlFileError:
             Logger().get_debug_log("Not yaml file: " + path)
             # print("Invalid external config path arrived!")
@@ -15,11 +15,11 @@ class Configuration(object):
             print("Unknown IO error")
 
     def is_valid(self) -> bool:
-        return self.yml_object is not None and self.yml_object.is_valid()
+        return self.__yml_object is not None and self.__yml_object.is_valid()
 
     def read_rules(self):
-        self.yml_object.read()
-        self.rules = self.yml_object.get_rules()
+        self.__yml_object.read()
+        self.__rules = self.__yml_object.get_rules()
 
     def set_value(self, that_key: str, new_value: str):
         self.__iterate_rules_for_set(that_key=that_key, new_value=new_value)
@@ -31,10 +31,10 @@ class Configuration(object):
         return self.__iterate_rules_for_get(that_key, return_value=False)
 
     def __iterate_rules_for_get(self, that_key: str, return_value: bool):
-        if isinstance(self.rules, list):
-            result = Configuration.__iterate_list_for_get(working_list=self.rules, that_key=that_key)
-        elif isinstance(self.rules, dict):
-            result = Configuration.__iterate_dict_for_get(self.rules, that_key)
+        if isinstance(self.__rules, list):
+            result = Configuration.__iterate_list_for_get(working_list=self.__rules, that_key=that_key)
+        elif isinstance(self.__rules, dict):
+            result = Configuration.__iterate_dict_for_get(self.__rules, that_key)
         else:
             raise ValueError("Not valid rules provided!")
 
@@ -77,10 +77,10 @@ class Configuration(object):
             return None
 
     def __iterate_rules_for_set(self, that_key: str, new_value: str):
-        if isinstance(self.rules, list):
-            Configuration.__iterate_list_for_set(working_list=self.rules, that_key=that_key, new_value=new_value)
-        elif isinstance(self.rules, dict):
-            Configuration.__iterate_dict_for_set(working_dict=self.rules, that_key=that_key, new_value=new_value)
+        if isinstance(self.__rules, list):
+            Configuration.__iterate_list_for_set(working_list=self.__rules, that_key=that_key, new_value=new_value)
+        elif isinstance(self.__rules, dict):
+            Configuration.__iterate_dict_for_set(working_dict=self.__rules, that_key=that_key, new_value=new_value)
         else:
             raise ValueError("Not valid rules provided!")
 
@@ -111,10 +111,10 @@ class Configuration(object):
             Configuration.__iterate_dict_for_set(working_dict=item, that_key=that_key, new_value=new_value)
 
     def set_rules(self):
-        self.yml_object.set_rules(self.rules)
+        self.__yml_object.set_rules(self.__rules)
 
     def write_rules(self, path=''):
-        self.yml_object.write(path)
+        self.__yml_object.write(path)
 
     def get_path(self) -> str:
-        return self.yml_object.get_path()
+        return self.__yml_object.get_path()

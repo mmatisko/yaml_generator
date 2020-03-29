@@ -18,7 +18,7 @@ def main(argv):
         dp = DataProcessing(params=params)
         dp.process()
     else:
-        print(Logger.get_error_log(argv))
+        print(Logger.get_error_log(''.join(argv)))
         raise ValueError("Invalid arguments provided! See help for valid inputs")
 
 
