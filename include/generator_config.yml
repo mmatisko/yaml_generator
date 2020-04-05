@@ -2,8 +2,8 @@
 general:
   - iterations: 30
     name: YAML generator
-    input: ./testing/lamp_simple_centos8/
-    output: ./testing_output/
+    input: ./app_test/input/lamp_simple_centos8/
+    output: ./app_test/output/
 
 # Static values
 static:
@@ -13,4 +13,4 @@ static:
 dynamic:
   - network: 192.168.<#>.0/24
     ports: 2042-5142
-    password: ./include/passwords.txt
+    password: ./include/test/source/passwords.txt

@@ -14,12 +14,12 @@ from type_detector import DynamicTypeDetector
 
 
 class UnitTest(unittest.TestCase):
-    __test_file: str = "./include/testing/config.yml"
-    __test_file_dir: str = "./include/testing/"
-    __test_dir: str = "./template_config/"
+    __test_file: str = "./include/test/config/config.yml"
+    __test_file_dir: str = "./include/test/config/"
+    __non_existing_test_dir: str = "./template_config/"
 
     def test_arg_parse_generate(self):
-        args = ("-G -c " + UnitTest.__test_file + " -d " + UnitTest.__test_dir).split()
+        args = ("-G -c " + UnitTest.__test_file + " -d " + UnitTest.__non_existing_test_dir).split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
@@ -27,7 +27,7 @@ class UnitTest(unittest.TestCase):
                          ("Invalid mode: " + str(params[ArgumentType.AppMode])))
         self.assertEqual(params[ArgumentType.ConfigFile], UnitTest.__test_file,
                          ("Invalid config: " + params[ArgumentType.ConfigFile]))
-        self.assertEqual(params[ArgumentType.AnsibleConfigDir], UnitTest.__test_dir,
+        self.assertEqual(params[ArgumentType.AnsibleConfigDir], UnitTest.__non_existing_test_dir,
                          ("Invalid Ansible directory:" + params[ArgumentType.AnsibleConfigDir]))
 
     def test_arg_parse_edit(self):
@@ -145,7 +145,7 @@ class UnitTest(unittest.TestCase):
         self.assertEqual(ip, cfg.get_value(params[ArgumentType.ItemKey]))
 
     def test_ansible_dir_count(self):
-        args = "-E -d /run/media/mmatisko/Data/Documents/FEKT/DP/program/include/lamp_simple/ -k foo -v barbar".split()
+        args = "-E -d include/template/lamp_simple_centos8/ -k foo -v barbar".split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
         ans_dir = AnsibleDirectory(params[ArgumentType.AnsibleConfigDir])
@@ -156,7 +156,7 @@ class UnitTest(unittest.TestCase):
             for _ in ans_dir.iterate_directory_tree():
                 pass
         result: int = ans_dir.count_files_in_tree()
-        self.assertEqual(result, 22, ("Invalid files number: " + str(result)))
+        self.assertEqual(result, 17, ("Invalid files number: " + str(result)))
 
     def test_dynamic_types_interface(self):
         self.assertTrue(issubclass(PortRange, DynamicValue))
@@ -184,7 +184,7 @@ class UnitTest(unittest.TestCase):
 
     def test_simple_text_detection_read(self):
         detector = DynamicTypeDetector()
-        valid_file: str = './include/passwords.txt'
+        valid_file: str = './include/test/source/passwords.txt'
         self.assertEqual(detector.detect_type(valid_file), ArgumentType.RandomPickFile)
 
         reader = ListFileReader(valid_file)
@@ -195,7 +195,7 @@ class UnitTest(unittest.TestCase):
 
     def test_csv_detection_read(self):
         detector = DynamicTypeDetector()
-        valid_file: str = './include/logins.csv'
+        valid_file: str = './include/test/source/logins.csv'
         self.assertEqual(detector.detect_type(valid_file), ArgumentType.RandomPickFile)
 
         reader = ListFileReader(valid_file)

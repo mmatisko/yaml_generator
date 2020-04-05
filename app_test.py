@@ -9,9 +9,9 @@ import shutil
 
 class AppTest(unittest.TestCase):
     __generator_config: str = './include/generator_config.yml'
-    __template_directory: str = './include/lamp_simple_centos8/'
-    __testing_directory: str = './testing/lamp_simple_centos8/'
-    __output_directory: str = './testing_output/'
+    __template_directory: str = './include/template/lamp_simple_centos8/'
+    __testing_directory: str = './app_test/input/lamp_simple_centos8/'
+    __output_directory: str = './app_test/output/'
     __iteration_count: int = 3
 
     def setUp(self) -> None:
@@ -48,15 +48,14 @@ class AppTest(unittest.TestCase):
         args: list = {('ntpserver', '-n 192.168.1.4/30', ('192.168.1.5', '192.168.1.6')),
                       ('httpd_port', '-p 81-85', (81, 82, 83, 84, 85)),
                       ('repository', '-v http://github.com/bennojoy/mywebapp.git',
-                       ('http://github.com/bennojoy/mywebapp.git',))
-                      }
+                      ('http://github.com/bennojoy/mywebapp.git',))}
 
         for key, value, expected_values in args:
             program_args = ('-E -d ' + AppTest.__testing_directory + ' -k ' + key + ' ' + value).split()
             main.main(program_args)
 
             self.assertTrue(os.path.isdir(AppTest.__testing_directory))
-            test_conf = Configuration('./testing/lamp_simple_centos8/group_vars/all')
+            test_conf = Configuration(AppTest.__testing_directory + '/group_vars/all')
             test_conf.read_rules()
             new_value = test_conf.get_value(key)
             self.assertTrue(new_value in expected_values)
