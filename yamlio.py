@@ -1,8 +1,8 @@
 import io
 import os.path
 import yaml
-import yaml.parser
-import yaml.scanner
+from yaml import parser, scanner
+from vault import FileVault
 
 
 class YamlIo(object):
@@ -29,7 +29,7 @@ class YamlIo(object):
         if path == '':
             path = self.__path
         with io.open(path, 'w', encoding='utf-8') as out_file:
-            yaml.dump(self.__rules, out_file, default_flow_style=False, allow_unicode=True)
+            yaml.safe_dump(self.__rules, out_file, default_flow_style=False, allow_unicode=True)
             return True
 
     def get_rules(self) -> dict:

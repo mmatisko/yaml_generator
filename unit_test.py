@@ -1,10 +1,13 @@
 import os.path
+import sys
+from io import StringIO
 import unittest
 
 from ansibledir import AnsibleDirectory
 from argparser import AppMode, ArgParser, ArgumentType
 from configuration import Configuration
 from dynamic_value import DynamicValue
+from vault import FileVault
 from iterator_regex import IteratorRegex
 from list_reader import ListFileReader
 from logger import Logger
@@ -246,6 +249,18 @@ class UnitTest(unittest.TestCase):
         self.assertFalse(IteratorRegex.is_iterator_regex('<#2>'))
         self.assertFalse(IteratorRegex.is_iterator_regex('<#+123456>'))
         self.assertFalse(IteratorRegex.is_iterator_regex('<#+0.2>'))
+
+    def test_vault(self):
+        path = 'include/enc_generator_config.yml'
+        self.assertTrue(FileVault.is_vault_file(path))
+
+        sys.stdin.close()
+        sys.stdin = StringIO('password')
+        vault = FileVault(path)
+        content = vault.read_file()
+        vault.write_file(content)
+        new_content = vault.read_file()
+        self.assertTrue(content == new_content)
 
 
 if __name__ == '__main__':
