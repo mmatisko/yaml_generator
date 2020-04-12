@@ -11,8 +11,10 @@ class FileVault(object):
         with open(self.__filepath, 'r') as stream:
             return self.__vault.load(stream.read())
 
-    def write_file(self, rules):
-        with open(self.__filepath, 'w') as stream:
+    def write_file(self, rules, path: str = ''):
+        if path == '':
+            path = self.__filepath
+        with open(path, 'w') as stream:
             self.__vault.dump(rules, stream)
 
     @staticmethod

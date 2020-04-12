@@ -10,7 +10,6 @@ class Configuration(object):
             self.__yml_object = YamlIo(path)
         except NotValidYamlFileError:
             Logger().get_debug_log("Not yaml file: " + path)
-            # print("Invalid external config path arrived!")
         except IOError:
             print("Unknown IO error")
 
@@ -18,7 +17,6 @@ class Configuration(object):
         return self.__yml_object is not None and self.__yml_object.is_valid()
 
     def read_rules(self):
-        self.__yml_object.read()
         self.__rules = self.__yml_object.get_rules()
 
     def set_value(self, that_key: str, new_value: str):
@@ -118,3 +116,6 @@ class Configuration(object):
 
     def get_path(self) -> str:
         return self.__yml_object.get_path()
+
+    def set_encrypted_write(self):
+        self.__yml_object.encrypt_on_write()

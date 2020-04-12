@@ -1,14 +1,17 @@
+from io import StringIO
+import os
+import sys
+import shutil
+import unittest
+
 from ansibledir import AnsibleDirectory
 from configuration import Configuration
 import main
 
-import unittest
-import os
-import shutil
-
 
 class AppTest(unittest.TestCase):
     __generator_config: str = './include/generator_config.yml'
+    __generator_config_enc: str = './include/enc_generator_config.yml'
     __template_directory: str = './include/template/lamp_simple_centos8/'
     __testing_directory: str = './app_test/input/lamp_simple_centos8/'
     __output_directory: str = './app_test/output/'
@@ -62,6 +65,15 @@ class AppTest(unittest.TestCase):
 
     def test_app_generate_mode(self):
         args: list = ('-G -c ' + AppTest.__generator_config + ' -d ' + AppTest.__testing_directory).split()
+        main.main(args)
+
+        self.assertTrue(os.path.isdir(AppTest.__output_directory))
+
+    def test_app_enc_generate_mode(self):
+        args: list = ('-G -c ' + AppTest.__generator_config_enc + ' -d ' + AppTest.__testing_directory).split()
+
+        sys.stdin.close()
+        sys.stdin = StringIO('password')
         main.main(args)
 
         self.assertTrue(os.path.isdir(AppTest.__output_directory))
