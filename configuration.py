@@ -1,15 +1,13 @@
-from yamlio import NotValidYamlFileError, YamlIo
+from yamlio import YamlIo
 from logger import Logger
 
 
 class Configuration(object):
-    def __init__(self, path: str):
-        self.__yml_object = None
+    def __init__(self, path: str, password: str = ''):
+        self.__yml_object: YamlIo = None
         self.__rules: dict = {}
         try:
-            self.__yml_object = YamlIo(path)
-        except NotValidYamlFileError:
-            Logger().get_debug_log("Not yaml file: " + path)
+            self.__yml_object = YamlIo(path=path, password=password)
         except IOError:
             print("Unknown IO error")
 
@@ -17,7 +15,10 @@ class Configuration(object):
         return self.__yml_object is not None and self.__yml_object.is_valid()
 
     def read_rules(self):
-        self.__rules = self.__yml_object.get_rules()
+        if self.__yml_object.read():
+            self.__rules = self.__yml_object.rules
+        else:
+            Logger().get_debug_log("Not yaml file: " + self.__yml_object.path)
 
     def set_value(self, that_key: str, new_value: str):
         self.__iterate_rules_for_set(that_key=that_key, new_value=new_value)
@@ -32,7 +33,7 @@ class Configuration(object):
         if isinstance(self.__rules, list):
             result = Configuration.__iterate_list_for_get(working_list=self.__rules, that_key=that_key)
         elif isinstance(self.__rules, dict):
-            result = Configuration.__iterate_dict_for_get(self.__rules, that_key)
+            result = Configuration.__iterate_dict_for_get(working_dict=self.__rules, that_key=that_key)
         else:
             raise ValueError("Not valid rules provided!")
 
@@ -46,7 +47,7 @@ class Configuration(object):
         for key, value in working_dict.items():
             if key == that_key:
                 return value
-            check_result = Configuration.__get_iteration_subroutine(value, that_key)
+            check_result = Configuration.__get_iteration_subroutine(item=value, that_key=that_key)
             if check_result is not None:
                 return check_result
 
@@ -57,18 +58,18 @@ class Configuration(object):
         for key in working_list:
             if key == that_key:
                 return key
-            check_result = Configuration.__get_iteration_subroutine(key, that_key)
+            check_result = Configuration.__get_iteration_subroutine(item=key, that_key=that_key)
             if check_result is not None:
                 return check_result
 
     @staticmethod
     def __get_iteration_subroutine(item, that_key: str):
         if isinstance(item, list):
-            result = Configuration.__iterate_list_for_get(item, that_key)
+            result = Configuration.__iterate_list_for_get(working_list=item, that_key=that_key)
             if result is not None:
                 return result
         elif isinstance(item, dict):
-            result = Configuration.__iterate_dict_for_get(item, that_key)
+            result = Configuration.__iterate_dict_for_get(working_dict=item, that_key=that_key)
             if result is not None:
                 return result
         else:
@@ -114,8 +115,12 @@ class Configuration(object):
     def write_rules(self, path=''):
         self.__yml_object.write(path)
 
-    def get_path(self) -> str:
-        return self.__yml_object.get_path()
+    @property
+    def path(self) -> str:
+        return self.__yml_object.path
 
     def set_encrypted_write(self):
         self.__yml_object.encrypt_on_write()
+
+    def password(self) -> str:
+        return self.__yml_object.password

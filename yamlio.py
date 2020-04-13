@@ -2,21 +2,17 @@ import io
 import os.path
 import yaml
 from yaml import parser, scanner
-from vault import FileVault
+from vault import FileVault, is_vault_file
 
 
 class YamlIo(object):
-    def __init__(self, path: str):
+    def __init__(self, path: str, password: str = ''):
         self.__path: str = path
         self.__rules: dict = {}
         self.__encrypted: bool = False
         self.__vault: FileVault = None
-        if os.path.isfile(self.__path):
-            if self.read():
-                pass
-            else:
-                raise NotValidYamlFileError
-        else:
+        self.__vault_pass: str = password
+        if not os.path.isfile(self.__path):
             raise IOError
 
     def is_valid(self) -> bool:
@@ -24,11 +20,10 @@ class YamlIo(object):
     
     def read(self) -> bool:
         try:
-            if FileVault.is_vault_file(self.__path):
+            if is_vault_file(self.__path):
                 self.__encrypted = True
-                self.__vault = FileVault(self.__path)
+                self.__vault = FileVault(filepath=self.__path, password=self.__vault_pass)
                 self.__rules = self.__vault.read_file()
-
             else:
                 with io.open(self.__path, 'r') as in_file:
                     self.__rules = yaml.safe_load(in_file)
@@ -50,17 +45,17 @@ class YamlIo(object):
             self.__encrypted = True
             self.__vault = FileVault(filepath=self.__path)
 
-    def get_rules(self) -> dict:
-        return self.__rules
-
     def set_rules(self, rules: dict):
         self.__rules = rules
 
-    def get_path(self) -> str:
+    @property
+    def rules(self) -> dict:
+        return self.__rules
+
+    @property
+    def path(self) -> str:
         return self.__path
 
-
-class NotValidYamlFileError(Exception):
-    @staticmethod
-    def what():
-        return "Not valid YAML file!"
+    @property
+    def password(self) -> str:
+        return self.__vault_pass

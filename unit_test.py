@@ -76,7 +76,7 @@ class UnitTest(unittest.TestCase):
     def test_external_config(self):
         external_cfg = Configuration(UnitTest.__test_file)
         self.assertTrue(external_cfg.is_valid())
-        self.assertEqual(external_cfg.get_path(), UnitTest.__test_file, ("Invalid path: " + external_cfg.get_path()))
+        self.assertEqual(external_cfg.path(), UnitTest.__test_file, ("Invalid path: " + external_cfg.path()))
         external_cfg.read_rules()
         item = "foo"
         backup_value = external_cfg.get_value(item)

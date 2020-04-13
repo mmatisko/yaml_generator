@@ -2,15 +2,21 @@ from ansibledir import AnsibleDirectory
 from argparser import AppMode, ArgumentType
 from configuration import Configuration
 from generator_rule import GeneratorRule, GeneratorRuleType
+from vault import is_vault_file
 
+from getpass import getpass
 import os.path
 
 
 class DataProcessing(object):
     def __init__(self, params: dict):
         self.params: dict = params
+        self.ansible_cfg_pass: str = ''
+        self.generator_cfg_pass: str = ''
 
     def process(self):
+        self.ansible_cfg_pass = getpass('Enter Ansible Vault password for Ansible configuration (confirm empty\n'
+                                        'for plain text output using plain text template:')
         if self.params[ArgumentType.AppMode] is AppMode.Edit:
             self.__edit_mode_process()
         else:
@@ -27,9 +33,9 @@ class DataProcessing(object):
         else:
             return None
 
-    @staticmethod
-    def __set_value_in_file(key: str, value: str, config_path: str) -> bool:
-        config = Configuration(config_path)
+    def __set_value_in_file(self, key: str, value: str, config_path: str) -> bool:
+        config = Configuration(path=config_path, password=self.ansible_cfg_pass)
+        config.read_rules()
         if config.is_valid():
             config.read_rules()
             if config.key_exists(key):
@@ -40,25 +46,28 @@ class DataProcessing(object):
 
     def __edit_mode_process(self):
         ans_dir = AnsibleDirectory(directory_path=self.params[ArgumentType.AnsibleConfigDir])
+
+        new_value_type = self.__get_dynamic_rule_key(self.params)
+        new_value = self.params[new_value_type] if new_value_type is not None \
+            else self.params[ArgumentType.ItemValue]
+
+        arg_type = GeneratorRuleType.Dynamic if new_value_type is not None else GeneratorRuleType.Static
+        new_value = new_value if new_value is not None else self.params[ArgumentType.ItemValue]
+        gen_rule = GeneratorRule(name=self.params[ArgumentType.ItemKey], value=new_value, rule_type=arg_type)
+
         for root, filename in ans_dir.iterate_directory_tree():
             full_filepath = os.path.join(root, filename)
 
-            new_value_type = self.__get_dynamic_rule_key(self.params)
-
-            new_value = self.params[new_value_type] if new_value_type is not None \
-                else self.params[ArgumentType.ItemValue]
-
-            arg_type = GeneratorRuleType.Dynamic if new_value_type is not None else GeneratorRuleType.Static
-            new_value = new_value if new_value is not None else self.params[ArgumentType.ItemValue]
-            gen_rule = GeneratorRule(name=self.params[ArgumentType.ItemKey], value=new_value, rule_type=arg_type)
-
-            if DataProcessing.__set_value_in_file(key=self.params[ArgumentType.ItemKey],
-                                                  value=gen_rule.get_value(0),
-                                                  config_path=full_filepath):
+            if self.__set_value_in_file(key=self.params[ArgumentType.ItemKey],
+                                        value=gen_rule.get_value(0),
+                                        config_path=full_filepath):
                 return
 
     def __generate_mode_process(self):
-        gen_conf = Configuration(self.params[ArgumentType.ConfigFile])
+        if is_vault_file(self.params[ArgumentType.ConfigFile]):
+            self.generator_cfg_pass = getpass('Enter Ansible Vault password for generator configuration (confirm empty'
+                                              '\nfor plain text output using plain text template:')
+        gen_conf = Configuration(path=self.params[ArgumentType.ConfigFile], password=self.generator_cfg_pass)
         gen_conf.read_rules()
         iterations = gen_conf.get_value('iterations')
         jinja_files = set()
@@ -84,13 +93,13 @@ class DataProcessing(object):
                 for root, filename in ans_dir.iterate_directory_tree():
                     full_filepath = os.path.join(root, filename)
                     for rule in rules:
-                        if (DataProcessing.__set_value_in_file(key=rule.name,
-                                                               value=rule.get_value(iteration_index),
-                                                               config_path=full_filepath)):
+                        if (self.__set_value_in_file(key=rule.name,
+                                                     value=rule.get_value(iteration_index),
+                                                     config_path=full_filepath)):
                             jinja_files.add(full_filepath)
             else:
                 for full_jinja_path in jinja_files:
                     for rule in rules:
-                        DataProcessing.__set_value_in_file(key=rule.name,
-                                                           value=rule.get_value(iteration_index),
-                                                           config_path=full_jinja_path)
+                        self.__set_value_in_file(key=rule.name,
+                                                 value=rule.get_value(iteration_index),
+                                                 config_path=full_jinja_path)

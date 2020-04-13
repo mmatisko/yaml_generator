@@ -11,9 +11,13 @@ import main
 
 class AppTest(unittest.TestCase):
     __generator_config: str = './include/generator_config.yml'
-    __generator_config_enc: str = './include/enc_generator_config.yml'
     __template_directory: str = './include/template/lamp_simple_centos8/'
     __testing_directory: str = './app_test/input/lamp_simple_centos8/'
+
+    __generator_config_enc: str = './include/enc_generator_config.yml'
+    __template_directory_enc: str = './include/template/enc_lamp_simple_centos8/'
+    __testing_directory_enc: str = './app_test/input/enc_lamp_simple_centos8/'
+
     __output_directory: str = './app_test/output/'
     __iteration_count: int = 3
 
@@ -22,8 +26,11 @@ class AppTest(unittest.TestCase):
         AppTest.__clean_testing_folder(AppTest.__output_directory)
         AppTest.__prepare_testing_folder(src=AppTest.__template_directory, dst=AppTest.__testing_directory)
 
+        AppTest.__clean_testing_folder(AppTest.__testing_directory_enc)
+        AppTest.__prepare_testing_folder(src=AppTest.__template_directory_enc, dst=AppTest.__testing_directory_enc)
+
     def tearDown(self) -> None:
-        AppTest.__clean_testing_folder(AppTest.__testing_directory[:10])
+        AppTest.__clean_testing_folder(AppTest.__testing_directory[:len('./app_test/')])
         AppTest.__clean_testing_folder(AppTest.__output_directory)
 
     @staticmethod
@@ -53,30 +60,33 @@ class AppTest(unittest.TestCase):
                       ('repository', '-v http://github.com/bennojoy/mywebapp.git',
                       ('http://github.com/bennojoy/mywebapp.git',))}
 
-        for key, value, expected_values in args:
-            program_args = ('-E -d ' + AppTest.__testing_directory + ' -k ' + key + ' ' + value).split()
-            main.main(program_args)
+        for working_dir in {AppTest.__testing_directory, AppTest.__testing_directory_enc}:
+            for key, value, expected_values in args:
+                program_args = ('-E -d ' + working_dir + ' -k ' + key + ' ' + value).split()
 
-            self.assertTrue(os.path.isdir(AppTest.__testing_directory))
-            test_conf = Configuration(AppTest.__testing_directory + '/group_vars/all')
-            test_conf.read_rules()
-            new_value = test_conf.get_value(key)
-            self.assertTrue(new_value in expected_values)
+                password = 'password'
+                sys.stdin.close()
+                sys.stdin = StringIO(password)
+                main.main(program_args)
+
+                self.assertTrue(os.path.isdir(AppTest.__testing_directory))
+                test_conf = Configuration(path=AppTest.__testing_directory_enc + '/group_vars/all', password=password)
+                test_conf.read_rules()
+                new_value = test_conf.get_value(key)
+                self.assertTrue(new_value in expected_values)
 
     def test_app_generate_mode(self):
-        args: list = ('-G -c ' + AppTest.__generator_config + ' -d ' + AppTest.__testing_directory).split()
-        main.main(args)
+        pairs: list = {(AppTest.__generator_config, AppTest.__testing_directory, '\n\n'),
+                       (AppTest.__generator_config_enc, AppTest.__testing_directory, '\npassword')}
 
-        self.assertTrue(os.path.isdir(AppTest.__output_directory))
+        for gen_cfg, working_dir, password in pairs:
+            args: list = ('-G -c ' + gen_cfg + ' -d ' + working_dir).split()
 
-    def test_app_enc_generate_mode(self):
-        args: list = ('-G -c ' + AppTest.__generator_config_enc + ' -d ' + AppTest.__testing_directory).split()
+            sys.stdin.close()
+            sys.stdin = StringIO(password)
+            main.main(args)
 
-        sys.stdin.close()
-        sys.stdin = StringIO('password')
-        main.main(args)
-
-        self.assertTrue(os.path.isdir(AppTest.__output_directory))
+            self.assertTrue(os.path.isdir(AppTest.__output_directory))
 
     def test_invalid_params(self):
         args_mode_only: list = '-G'.split()

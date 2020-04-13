@@ -11,8 +11,10 @@ class AnsibleDirectory(object):
     def __init__(self, directory_path: str):
         if os.path.isdir(directory_path):
             self.__path = directory_path
-        else:
+        elif os.path.isfile(directory_path):
             raise FileExistsError
+        else:
+            raise IOError
 
     def iterate_directory_tree(self) -> str:
         for root, subdir, files in os.walk(self.__path):
