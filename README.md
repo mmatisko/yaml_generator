@@ -83,5 +83,6 @@ When starting generator you will be asked for template configuration password an
 | | Used password | Encrypted using provided password |
 
 ___
-Caution: All encrypted file in template have to use same Ansible Vault password!
+Caution: All encrypted file in template have to use same Ansible Vault password!  
+___
 Use with caution! When you lost/forget your Ansible Vault password, your configuration is lost!
