@@ -10,7 +10,7 @@ Tool for generating Ansible configuration from configuration template.
 * Ansible - for using Ansible Vault feature (encrypted input/output configuration)
 
 ## Installation
-No instalation required. Just clone this repository on target machine.
+No instalation required. Just need to clone this repository on target machine.
 
 ## Usage  
 Could be used in your favourite command line/terminal application.
@@ -22,22 +22,22 @@ Use with command line arguments, possible combinations are listed below:
 
 Using static value
 ```sh
-python3 yaml_gen.py -k KEY -v NEW_VALUE
+python3 yaml_gen.py -E -k KEY -v NEW_VALUE
 ```
 
 Using network address
 ```sh
-python3 yaml_gen.py -k KEY -n 192.168.11.0/24
+python3 yaml_gen.py -E -k KEY -n 192.168.11.0/24
 ```
 
 Using port range
 ```sh
-python3 yaml_gen.py -k KEY -p 4198-4205
+python3 yaml_gen.py -E -k KEY -p 4198-4205
 ```
 
 Using file list
 ```sh
-python3 yaml_gen.py -k KEY -f ./ROCK_YOU.txt
+python3 yaml_gen.py -E -k KEY -f ./ROCK_YOU.txt
 ```
 
 ### Generator mode  
@@ -50,6 +50,14 @@ File contains three sections:
   * output folder (optional, would be overridden by cmd arg)
 * Static - values for immediate write to config (could contain iterator variable), see using static value in Edit mode
 * Dynamic - items used for generate writable values, see network address, port range and file list in Edit mode
+
+#### Run
+Generator mode example start command with parameters
+* configuration file (required)
+* output folder (optional, override outpuf_folder from configuration file from general section
+```sh
+python3 yaml_gen.py -G -c GENERATOR_CONF.yml -o .OUTPUT_FOLDER/
+```
 
 #### Iterator variable  
 Used for variable part of static/dynamic values in generator mode. Simple notation is 
