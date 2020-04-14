@@ -17,8 +17,8 @@ Could be used in your favourite command line/terminal application.
 
 ### Editor mode  
 
-When you wanna edit you existing config (use with caution). 
-Use with command line arguments, possible combinations are listed below:  
+When you wanna edit you existing config (use with caution).  
+Use with command line arguments, required mode argument is -E, possible combinations are listed below:  
 
 Using static value
 ```sh
@@ -35,14 +35,14 @@ Using port range
 python3 yaml_gen.py -E -k KEY -p 4198-4205
 ```
 
-Using file list
+Using file list (CSV file or "single item per line" text file)
 ```sh
 python3 yaml_gen.py -E -k KEY -f ./ROCK_YOU.txt
 ```
 
 ### Generator mode  
 
-Create new configurations from template using configuration file, see example file [generator_config.yml](https://github.com/mmatisko/yaml_generator/blob/master/include/generator_config.yml).  
+Create new configurations from template using configuration file, see example file [generator_config.yml](https://github.com/mmatisko/yaml_generator/blob/master/include/generator_config.yml). Required mode argument is -G. 
 File contains three sections:  
 * General - generator config 
   * iteration count (required)
