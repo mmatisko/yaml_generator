@@ -77,6 +77,7 @@ class AppTest(unittest.TestCase):
                 test_conf = Configuration(path=working_dir + '/group_vars/all', password=password)
                 test_conf.read_rules()
                 new_value = test_conf.get_value(key)
+                self.assertFalse(old_value is new_value)
                 self.assertTrue(new_value in expected_values)
 
     def test_app_generate_mode(self):
@@ -112,6 +113,13 @@ class AppTest(unittest.TestCase):
         self.assertRaises(ValueError, main.main, args_no_value)
         self.assertRaises(ValueError, main.main, args_duplicate_item)
         self.assertRaises(ValueError, main.main, args_multiple_values)
+
+    def test_empty_input_or_output(self):
+        args_no_input: list = '-G -c ' + AppTest.__generator_config + ' -d '
+        args_no_output: list = '-G -c ' + AppTest.__generator_config + ' -o '
+
+        self.assertRaises(ValueError, main.main, args_no_input)
+        self.assertRaises(ValueError, main.main, args_no_output)
 
 
 if __name__ == "__main__":

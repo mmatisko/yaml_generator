@@ -4,7 +4,6 @@ from configuration import Configuration
 from generator_rule import GeneratorRule, GeneratorRuleType
 from vault import is_vault_file
 
-from copy import deepcopy
 from getpass import getpass
 import os.path
 
@@ -78,7 +77,8 @@ class DataProcessing(object):
         output_dir = self.params[ArgumentType.OutputFolder] if ArgumentType.OutputFolder in self.params.keys() \
             else gen_conf.get_value('output')
         output_dir_with_timestamp = AnsibleDirectory.create_dst_directory(dst=output_dir)
-        # TODO check if input and output dirs has values
+        if input_dir is '' or output_dir is '':
+            raise ValueError('Input or output folder not defined!')
 
         rules: list = []
         for key, value in gen_conf.get_value('static')[0].items():
@@ -92,7 +92,6 @@ class DataProcessing(object):
             AnsibleDirectory.copy_directory(src=input_dir, dst=output_dir_full_path)
             ans_dir = AnsibleDirectory(directory_path=output_dir_full_path)
 
-            # TODO fix save path to jinja files in two parts ... without iteration number
             if len(jinja_files) is 0:
                 for root, filename in ans_dir.iterate_directory_tree():
                     full_filepath = os.path.join(root, filename)
