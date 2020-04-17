@@ -54,7 +54,7 @@ class GeneratorRule(object):
             return preprocessed_value
         else:
             value_type = self.__detector.detect_type(preprocessed_value)
-            return GeneratorRule.__get_new_value_for_type(arg_type=value_type, key=self.__value)
+            return GeneratorRule.__get_new_value_for_type(arg_type=value_type, key=preprocessed_value)
 
     @property
     def name(self):

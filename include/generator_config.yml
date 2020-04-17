@@ -11,6 +11,6 @@ static:
 
 # Dynamic values
 dynamic:
-  - network: 192.168.<#>.0/24
-    ports: 2042-5142
-    password: ./include/test/source/passwords.txt
+  - ntpserver: 192.168.<#>.0/26
+    httpd_port: 2042-5142
+    upassword: ./include/test/source/passwords.txt

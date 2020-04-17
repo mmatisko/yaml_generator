@@ -7,7 +7,7 @@ from ansibledir import AnsibleDirectory
 from argparser import AppMode, ArgParser, ArgumentType
 from configuration import Configuration
 from dynamic_value import DynamicValue
-from vault import FileVault
+from vault import FileVault, is_vault_file
 from iterator_regex import IteratorRegex
 from list_reader import ListFileReader
 from logger import Logger
@@ -75,8 +75,9 @@ class UnitTest(unittest.TestCase):
 
     def test_external_config(self):
         external_cfg = Configuration(UnitTest.__test_file)
+        external_cfg.read_rules()
         self.assertTrue(external_cfg.is_valid())
-        self.assertEqual(external_cfg.path(), UnitTest.__test_file, ("Invalid path: " + external_cfg.path()))
+        self.assertEqual(external_cfg.path, UnitTest.__test_file, ("Invalid path: " + external_cfg.path))
         external_cfg.read_rules()
         item = "foo"
         backup_value = external_cfg.get_value(item)
@@ -112,6 +113,7 @@ class UnitTest(unittest.TestCase):
         test_dir = AnsibleDirectory(params[ArgumentType.AnsibleConfigDir])
         for root, filename in test_dir.iterate_directory_tree():
             cfg = Configuration(os.path.join(root, filename))
+            cfg.read_rules()
             self.assertTrue(cfg.is_valid(), "Config file is invalid!")
             cfg.read_rules()
             if cfg.key_exists(params[ArgumentType.ItemKey]):
@@ -212,6 +214,7 @@ class UnitTest(unittest.TestCase):
 
     def test_input_config(self):
         config = Configuration('./include/generator_config.yml')
+        config.read_rules()
         self.assertTrue(config.is_valid())
 
         config.read_rules()
@@ -252,11 +255,10 @@ class UnitTest(unittest.TestCase):
 
     def test_vault(self):
         path = 'include/enc_generator_config.yml'
-        self.assertTrue(FileVault.is_vault_file(path))
+        self.assertTrue(is_vault_file(path))
 
-        sys.stdin.close()
-        sys.stdin = StringIO('password')
-        vault = FileVault(path)
+        password = 'password'
+        vault = FileVault(filepath=path, password=password)
         content = vault.read_file()
         vault.write_file(content)
         new_content = vault.read_file()

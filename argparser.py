@@ -55,9 +55,8 @@ class ArgParser(object):
     @staticmethod
     def params_are_valid(params: dict) -> bool:
         if params[ArgumentType.AppMode] is AppMode.Generate:
-            return len(params.keys()) in range(2, 4) \
-                   and ArgumentType.ConfigFile in params.keys() \
-                   or ((len(params.keys()) is 3) and ArgumentType.AnsibleConfigDir in params.keys())
+            return len(params.keys()) in range(2, 5) \
+                   and ArgumentType.ConfigFile in params.keys()
         elif params[ArgumentType.AppMode] is AppMode.Edit:
             return len(params.keys()) is 4 \
                    and ArgumentType.AnsibleConfigDir in params.keys()\

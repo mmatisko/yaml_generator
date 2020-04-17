@@ -4,6 +4,7 @@ from configuration import Configuration
 from generator_rule import GeneratorRule, GeneratorRuleType
 from vault import is_vault_file
 
+from copy import deepcopy
 from getpass import getpass
 import os.path
 
@@ -77,6 +78,7 @@ class DataProcessing(object):
         output_dir = self.params[ArgumentType.OutputFolder] if ArgumentType.OutputFolder in self.params.keys() \
             else gen_conf.get_value('output')
         output_dir_with_timestamp = AnsibleDirectory.create_dst_directory(dst=output_dir)
+        # TODO check if input and output dirs has values
 
         rules: list = []
         for key, value in gen_conf.get_value('static')[0].items():
@@ -85,21 +87,29 @@ class DataProcessing(object):
             rules.append(GeneratorRule(name=key, value=value, rule_type=GeneratorRuleType.Dynamic))
 
         for iteration_index in range(iterations):
+            rules_left = rules.copy()
             output_dir_full_path = os.path.join(output_dir_with_timestamp, str(iteration_index))
             AnsibleDirectory.copy_directory(src=input_dir, dst=output_dir_full_path)
             ans_dir = AnsibleDirectory(directory_path=output_dir_full_path)
 
+            # TODO fix save path to jinja files in two parts ... without iteration number
             if len(jinja_files) is 0:
                 for root, filename in ans_dir.iterate_directory_tree():
                     full_filepath = os.path.join(root, filename)
                     for rule in rules:
-                        if (self.__set_value_in_file(key=rule.name,
-                                                     value=rule.get_value(iteration_index),
-                                                     config_path=full_filepath)):
-                            jinja_files.add(full_filepath)
+                        if rule in rules_left:
+                            if (self.__set_value_in_file(key=rule.name,
+                                                         value=rule.get_value(iteration_index),
+                                                         config_path=full_filepath)):
+                                file_with_folder = full_filepath[full_filepath.rfind('/0/')+2:]
+                                jinja_files.add(output_dir_with_timestamp + '/^$^$^' + file_with_folder)
+                                rules_left.remove(rule)
             else:
                 for full_jinja_path in jinja_files:
                     for rule in rules:
-                        self.__set_value_in_file(key=rule.name,
-                                                 value=rule.get_value(iteration_index),
-                                                 config_path=full_jinja_path)
+                        if rule in rules_left:
+                            iteration_path = full_jinja_path.replace('^$^$^', str(iteration_index))
+                            if self.__set_value_in_file(key=rule.name,
+                                                        value=rule.get_value(iteration_index),
+                                                        config_path=iteration_path):
+                                rules_left.remove(rule)

@@ -55,29 +55,35 @@ class AppTest(unittest.TestCase):
         self.assertTrue(AppTest.__compare_testing_folders(AppTest.__template_directory, AppTest.__testing_directory))
 
     def test_app_edit_mode(self):
-        args: list = {('ntpserver', '-n 192.168.1.4/30', ('192.168.1.5', '192.168.1.6')),
+        args: list = [('ntpserver', '-n 192.168.1.4/30', ('192.168.1.5', '192.168.1.6')),
                       ('httpd_port', '-p 81-85', (81, 82, 83, 84, 85)),
                       ('repository', '-v http://github.com/bennojoy/mywebapp.git',
-                      ('http://github.com/bennojoy/mywebapp.git',))}
+                      ('http://github.com/bennojoy/mywebapp.git',))]
 
         for working_dir in {AppTest.__testing_directory, AppTest.__testing_directory_enc}:
             for key, value, expected_values in args:
                 program_args = ('-E -d ' + working_dir + ' -k ' + key + ' ' + value).split()
 
                 password = 'password'
+                test_conf = Configuration(path=working_dir + '/group_vars/all', password=password)
+                test_conf.read_rules()
+                old_value = test_conf.get_value(key)
+
                 sys.stdin.close()
                 sys.stdin = StringIO(password)
                 main.main(program_args)
 
                 self.assertTrue(os.path.isdir(AppTest.__testing_directory))
-                test_conf = Configuration(path=AppTest.__testing_directory_enc + '/group_vars/all', password=password)
+                test_conf = Configuration(path=working_dir + '/group_vars/all', password=password)
                 test_conf.read_rules()
                 new_value = test_conf.get_value(key)
                 self.assertTrue(new_value in expected_values)
 
     def test_app_generate_mode(self):
-        pairs: list = {(AppTest.__generator_config, AppTest.__testing_directory, '\n\n'),
-                       (AppTest.__generator_config_enc, AppTest.__testing_directory, '\npassword')}
+        pairs: list = [(AppTest.__generator_config, AppTest.__testing_directory, '\n\n'),
+                       (AppTest.__generator_config_enc, AppTest.__testing_directory, '\npassword'),
+                       (AppTest.__generator_config, AppTest.__testing_directory_enc, 'password\n\n'),
+                       (AppTest.__generator_config_enc, AppTest.__testing_directory_enc, 'password\npassword\n')]
 
         for gen_cfg, working_dir, password in pairs:
             args: list = ('-G -c ' + gen_cfg + ' -d ' + working_dir).split()
