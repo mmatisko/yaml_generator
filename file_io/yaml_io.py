@@ -1,8 +1,9 @@
+from .vault_io import FileVault, is_vault_file
+
 import io
 import os.path
 import yaml
 from yaml import parser, scanner
-from vault import FileVault, is_vault_file
 
 
 class YamlIo(object):
@@ -43,7 +44,7 @@ class YamlIo(object):
     def encrypt_on_write(self):
         if not self.__encrypted:
             self.__encrypted = True
-            self.__vault = FileVault(filepath=self.__path)
+            self.__vault = FileVault(filepath=self.__path, password=self.__vault_pass)
 
     def set_rules(self, rules: dict):
         self.__rules = rules

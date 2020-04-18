@@ -1,8 +1,7 @@
-from ansibledir import AnsibleDirectory
-from argparser import AppMode, ArgumentType
-from configuration import Configuration
-from generator_rule import GeneratorRule, GeneratorRuleType
-from vault import is_vault_file
+from .configuration import Configuration
+from .arg_parser import AppMode, ArgumentType
+from file_io import AnsibleDirectory, is_vault_file
+from rules import GeneratorRule, GeneratorRuleType
 
 from getpass import getpass
 import os.path

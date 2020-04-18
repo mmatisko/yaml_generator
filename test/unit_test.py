@@ -1,25 +1,17 @@
-import os.path
-import sys
-from io import StringIO
-import unittest
+from file_io import AnsibleDirectory, FileVault, Logger, is_vault_file
+from processing import AppMode, ArgParser, ArgumentType, Configuration
+from rules import DynamicTypeDetector, DynamicValue, IteratorRegex, ListFileReader, InvalidPortRangeException, \
+    Network, PortRange
 
-from ansibledir import AnsibleDirectory
-from argparser import AppMode, ArgParser, ArgumentType
-from configuration import Configuration
-from dynamic_value import DynamicValue
-from vault import FileVault, is_vault_file
-from iterator_regex import IteratorRegex
-from list_reader import ListFileReader
-from logger import Logger
-from network import Network
-from portrange import InvalidPortRangeException, PortRange
-from type_detector import DynamicTypeDetector
+import os.path
+import unittest
 
 
 class UnitTest(unittest.TestCase):
-    __test_file: str = "./include/test/config/config.yml"
-    __test_file_dir: str = "./include/test/config/"
-    __non_existing_test_dir: str = "./template_config/"
+    __root_folder: str = "../"
+    __test_file: str = __root_folder + "include/test/config/config.yml"
+    __test_file_dir: str = __root_folder + "include/test/config/"
+    __non_existing_test_dir: str = __root_folder + "not_existing_folder/"
 
     def test_arg_parse_generate(self):
         args = ("-G -c " + UnitTest.__test_file + " -d " + UnitTest.__non_existing_test_dir).split()
@@ -150,7 +142,7 @@ class UnitTest(unittest.TestCase):
         self.assertEqual(ip, cfg.get_value(params[ArgumentType.ItemKey]))
 
     def test_ansible_dir_count(self):
-        args = "-E -d include/template/lamp_simple_centos8/ -k foo -v barbar".split()
+        args = ("-E -d " + UnitTest.__root_folder + "include/template/lamp_simple_centos8/ -k foo -v barbar").split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
         ans_dir = AnsibleDirectory(params[ArgumentType.AnsibleConfigDir])
@@ -189,7 +181,7 @@ class UnitTest(unittest.TestCase):
 
     def test_simple_text_detection_read(self):
         detector = DynamicTypeDetector()
-        valid_file: str = './include/test/source/passwords.txt'
+        valid_file: str = UnitTest.__root_folder + 'include/test/source/passwords.txt'
         self.assertEqual(detector.detect_type(valid_file), ArgumentType.RandomPickFile)
 
         reader = ListFileReader(valid_file)
@@ -200,7 +192,7 @@ class UnitTest(unittest.TestCase):
 
     def test_csv_detection_read(self):
         detector = DynamicTypeDetector()
-        valid_file: str = './include/test/source/logins.csv'
+        valid_file: str = UnitTest.__root_folder + 'include/test/source/logins.csv'
         self.assertEqual(detector.detect_type(valid_file), ArgumentType.RandomPickFile)
 
         reader = ListFileReader(valid_file)
@@ -213,7 +205,7 @@ class UnitTest(unittest.TestCase):
                                                       'visible_login', 'last_login'})
 
     def test_input_config(self):
-        config = Configuration('./include/generator_config.yml')
+        config = Configuration(UnitTest.__root_folder + 'include/generator_config.yml')
         config.read_rules()
         self.assertTrue(config.is_valid())
 
@@ -254,7 +246,7 @@ class UnitTest(unittest.TestCase):
         self.assertFalse(IteratorRegex.is_iterator_regex('<#+0.2>'))
 
     def test_vault(self):
-        path = 'include/enc_generator_config.yml'
+        path = UnitTest.__root_folder + 'include/enc_generator_config.yml'
         self.assertTrue(is_vault_file(path))
 
         password = 'password'

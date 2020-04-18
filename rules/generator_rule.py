@@ -1,10 +1,7 @@
-from argparser import ArgumentType
-from iterator_regex import IteratorRegex
-from list_reader import ListFileReader
-from logger import Logger
-from network import Network
-from portrange import PortRange
-from type_detector import DynamicTypeDetector
+from file_io import Logger
+from .iterator_regex import IteratorRegex
+from .type_detector import DynamicTypeDetector, ListFileReader, Network, PortRange
+from processing import ArgumentType
 
 from enum import Enum
 

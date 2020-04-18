@@ -1,6 +1,7 @@
-import csv
+from .dynamic_value import DynamicValue
+
 from abc import abstractmethod, ABC
-from dynamic_value import DynamicValue
+import csv
 from random import randint
 from os.path import isfile
 

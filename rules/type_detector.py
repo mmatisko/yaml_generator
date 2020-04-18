@@ -1,7 +1,7 @@
-from argparser import ArgumentType
-from list_reader import ListFileReader
-from network import Network
-from portrange import PortRange
+from .list_reader import ListFileReader
+from .network import Network
+from .port_range import PortRange
+from processing import ArgumentType
 
 
 class Singleton(object):

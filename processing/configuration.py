@@ -1,5 +1,4 @@
-from yamlio import YamlIo
-from logger import Logger
+from file_io import Logger, YamlIo
 
 
 class Configuration(object):

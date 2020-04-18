@@ -1,4 +1,5 @@
-from dynamic_value import DynamicValue
+from .dynamic_value import DynamicValue
+
 from ipaddress import ip_address, ip_network
 from random import getrandbits
 

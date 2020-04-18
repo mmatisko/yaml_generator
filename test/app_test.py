@@ -4,21 +4,23 @@ import sys
 import shutil
 import unittest
 
-from ansibledir import AnsibleDirectory
-from configuration import Configuration
-import main
+from file_io import AnsibleDirectory
+from processing import Configuration
+from ans_gen import main
 
 
 class AppTest(unittest.TestCase):
-    __generator_config: str = './include/generator_config.yml'
-    __template_directory: str = './include/template/lamp_simple_centos8/'
-    __testing_directory: str = './app_test/input/lamp_simple_centos8/'
+    __root_folder: str = "./"
 
-    __generator_config_enc: str = './include/enc_generator_config.yml'
-    __template_directory_enc: str = './include/template/enc_lamp_simple_centos8/'
-    __testing_directory_enc: str = './app_test/input/enc_lamp_simple_centos8/'
+    __generator_config: str = __root_folder + 'include/generator_config.yml'
+    __template_directory: str = __root_folder + 'include/template/lamp_simple_centos8/'
+    __testing_directory: str = __root_folder + 'app_test/input/lamp_simple_centos8/'
 
-    __output_directory: str = './app_test/output/'
+    __generator_config_enc: str = __root_folder + 'include/enc_generator_config.yml'
+    __template_directory_enc: str = __root_folder + 'include/template/enc_lamp_simple_centos8/'
+    __testing_directory_enc: str = __root_folder + 'app_test/input/enc_lamp_simple_centos8/'
+
+    __output_directory: str = __root_folder + 'app_test/output/'
     __iteration_count: int = 3
 
     def setUp(self) -> None:
@@ -30,7 +32,7 @@ class AppTest(unittest.TestCase):
         AppTest.__prepare_testing_folder(src=AppTest.__template_directory_enc, dst=AppTest.__testing_directory_enc)
 
     def tearDown(self) -> None:
-        AppTest.__clean_testing_folder(AppTest.__testing_directory[:len('./app_test/')])
+        AppTest.__clean_testing_folder(AppTest.__testing_directory[:len(AppTest.__root_folder + 'app_test/')])
         AppTest.__clean_testing_folder(AppTest.__output_directory)
 
     @staticmethod
@@ -71,7 +73,7 @@ class AppTest(unittest.TestCase):
 
                 sys.stdin.close()
                 sys.stdin = StringIO(password)
-                main.main(program_args)
+                main(program_args)
 
                 self.assertTrue(os.path.isdir(AppTest.__testing_directory))
                 test_conf = Configuration(path=working_dir + '/group_vars/all', password=password)
@@ -91,7 +93,7 @@ class AppTest(unittest.TestCase):
 
             sys.stdin.close()
             sys.stdin = StringIO(password)
-            main.main(args)
+            main(args)
 
             self.assertTrue(os.path.isdir(AppTest.__output_directory))
 
@@ -99,8 +101,8 @@ class AppTest(unittest.TestCase):
         args_mode_only: list = '-G'.split()
         args_no_config: list = ('-G -d' + AppTest.__testing_directory).split()
 
-        self.assertRaises(ValueError, main.main, args_no_config)
-        self.assertRaises(ValueError, main.main, args_mode_only)
+        self.assertRaises(ValueError, main, args_no_config)
+        self.assertRaises(ValueError, main, args_mode_only)
 
         args_mode_only: list = '-E'.split()
         args_no_key: list = '-E -v value'.split()
@@ -108,18 +110,18 @@ class AppTest(unittest.TestCase):
         args_duplicate_item: list = '-E -k key -k key -v value'.split()
         args_multiple_values: list = '-E -k key -v value -f pass_file.txt'.split()
 
-        self.assertRaises(ValueError, main.main, args_mode_only)
-        self.assertRaises(ValueError, main.main, args_no_key)
-        self.assertRaises(ValueError, main.main, args_no_value)
-        self.assertRaises(ValueError, main.main, args_duplicate_item)
-        self.assertRaises(ValueError, main.main, args_multiple_values)
+        self.assertRaises(ValueError, main, args_mode_only)
+        self.assertRaises(ValueError, main, args_no_key)
+        self.assertRaises(ValueError, main, args_no_value)
+        self.assertRaises(ValueError, main, args_duplicate_item)
+        self.assertRaises(ValueError, main, args_multiple_values)
 
     def test_empty_input_or_output(self):
         args_no_input: list = '-G -c ' + AppTest.__generator_config + ' -d '
         args_no_output: list = '-G -c ' + AppTest.__generator_config + ' -o '
 
-        self.assertRaises(ValueError, main.main, args_no_input)
-        self.assertRaises(ValueError, main.main, args_no_output)
+        self.assertRaises(ValueError, main, args_no_input)
+        self.assertRaises(ValueError, main, args_no_output)
 
 
 if __name__ == "__main__":
