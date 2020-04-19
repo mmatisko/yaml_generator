@@ -17,7 +17,7 @@ class Configuration(object):
         if self.__yml_object.read():
             self.__rules = self.__yml_object.rules
         else:
-            Logger().get_debug_log("Not yaml file: " + self.__yml_object.path)
+            Logger().write_debug_log("Not yaml file: " + self.__yml_object.path)
 
     def set_value(self, that_key: str, new_value: str):
         self.__iterate_rules_for_set(that_key=that_key, new_value=new_value)

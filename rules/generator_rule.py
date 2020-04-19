@@ -41,7 +41,7 @@ class GeneratorRule(object):
                 if helper_obj.is_valid:
                     return helper_obj.get_random_value()
             except ValueError:
-                Logger.get_error_log("Generating value error!")
+                Logger.write_error_log("Generating value error!")
         else:
             raise ValueError("Unsupported argument type provided!")
 

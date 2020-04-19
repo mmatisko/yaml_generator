@@ -15,9 +15,7 @@ class ArgParser(object):
 
         for opt, arg in opts:
             if opt in ("-H", "--help"):
-                print("main.py -d <dir> -k <key> [-n <network> | -p <ports> | -f <file for random item pick>] "
-                      "..for edit mode")
-                print("main.py -d <dir> -c <config> ..for generate mode")
+                ArgParser.__print_help()
                 sys.exit(1)
             if opt in ("-E", "--edit"):
                 params[ArgumentType.AppMode] = AppMode.Edit
@@ -67,6 +65,29 @@ class ArgParser(object):
                         or ArgumentType.ItemValue in params.keys())
         else:
             return False
+
+    @staticmethod
+    def __print_help():
+        print("Editor mode usage: ans_gen.py -E -d <dir> -k <key> {-n | -p | -f | -v} <value>")
+        print("Generator mode usage: ans_gen.py -G -c <config> [-d <value >| o <value>]")
+        print("")
+        print("Mode parameters (required):")
+        print("-E, [--edit]  - editor mode, editing selected configuration folder")
+        print("-G, [--generate]  - generator mode, generate new configurations")
+        print("")
+        print("Arguments valid in both modes:")
+        print("-d, [--dir],  - source directory of input config, optional in generator mode")
+        print("")
+        print("Arguments valid only in Editor mode:")
+        print("-k, [--key]  - name of item/rule, required argument with one of above")
+        print("-v, [--value]  - new static value of item")
+        print("-n, [--network]  - network value to generate item value")
+        print("-p, [--ports]  - port range to generate item value")
+        print("-f, [--file]  - source text file with list of item values")
+        print("")
+        print("Arguments valid only in Generator mode:")
+        print("-c, [--config]  - required, path of configuration file")
+        print("-o, [--output]  - optional, root path of generated configurations")
 
 
 class AppMode(Enum):

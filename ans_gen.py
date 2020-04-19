@@ -5,20 +5,23 @@ import sys
 
 
 def main(argv):
-    print('YML Config Generator')
-    params: dict = {}
+    Logger.write_log('YAML Config Generator')
+
     try:
-        params = ArgParser.parse(argv=argv)
+        params: dict = ArgParser.parse(argv=argv)
     except (ArgumentError, ArgumentModeError) as err:
         print(err.what())
         sys.exit(2)
 
     if ArgParser.params_are_valid(params=params):
+        Logger.write_debug_log('Params validated, processing...')
         dp = DataProcessing(params=params)
         dp.process()
     else:
-        print(Logger.get_error_log(''.join(argv)))
+        Logger.write_error_log(''.join(argv))
         raise ValueError("Invalid arguments provided! See help for valid inputs")
+
+    Logger.write_log('Generator is done :)')
 
 
 if __name__ == "__main__":
@@ -34,8 +37,13 @@ if __name__ == "__main__":
 # -v --value / value of edited item
 #
 # edit mode with static value:
-    # main.py -k key -v static_value
+    # ans_gen.py -k key -v static_value
 # edit mode with value generation (ip/port/value from list)
-    # main.py -k network|port|password -n 192.168.10.0/24 -p 11180-11443 -f passwords.txt
+    # ans_gen.py -k network -n 192.168.10.0/24
+    # ans_gen.py -k port -p 11180-11443
+    # ans_gen.py -k password -f passwords.txt
 # generating mode
-    # main.py -c config.yml -d input_directory/ -o output_directory/
+    # ans_gen.py -c config.yml
+    # ans_gen.py -c config.yml -d input_dir/
+    # ans_gen.py -c config.yml -o output_dir/
+    # ans_gen.py -c config.yml -d input_dir/ -o output_dir/

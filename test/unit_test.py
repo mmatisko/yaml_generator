@@ -3,6 +3,7 @@ from processing import AppMode, ArgParser, ArgumentType, Configuration
 from rules import DynamicTypeDetector, DynamicValue, IteratorRegex, ListFileReader, InvalidPortRangeException, \
     Network, PortRange
 
+import io
 import os.path
 import unittest
 
@@ -36,10 +37,21 @@ class UnitTest(unittest.TestCase):
         self.assertEqual(params[ArgumentType.ItemValue], "3336", ("Invalid value: " + params[ArgumentType.ItemValue]))
 
     def test_logger(self):
-        self.assertEqual(Logger.get_debug_log("debug"), (Logger.get_timestamp() + " [DEBUG]: debug"))
-        self.assertEqual(Logger.get_warning_log("warning"), (Logger.get_timestamp() + " [WARNING]: warning"))
-        self.assertEqual(Logger.get_error_log("error"), (Logger.get_timestamp() + " [ERROR]: error"))
-        self.assertEqual(Logger.get_log("message"), (Logger.get_timestamp() + " message"))
+        with io.StringIO() as reader:
+            Logger.write_debug_log("debug", reader)
+            self.assertTrue(reader.getvalue().rstrip().endswith(" [DEBUG]: debug"))
+
+        with io.StringIO() as reader:
+            Logger.write_warning_log("warning", reader)
+            self.assertTrue(reader.getvalue().rstrip().endswith(" [WARNING]: warning"))
+
+        with io.StringIO() as reader:
+            Logger.write_error_log("error", reader)
+            self.assertTrue(reader.getvalue().rstrip().endswith(" [ERROR]: error"))
+
+        with io.StringIO() as reader:
+            Logger.write_log("message", reader)
+            self.assertTrue(reader.getvalue().rstrip().endswith(" message"))
 
     def test_network(self):
         network_tester = Network("192.168.10.128/25")

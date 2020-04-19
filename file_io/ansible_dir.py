@@ -46,7 +46,7 @@ class AnsibleDirectory(object):
                 else:
                     shutil.copy2(s, d)
         else:
-            print(Logger.get_error_log("src: " + src + ", dst:" + dst))
+            Logger.write_error_log("src: " + src + ", dst:" + dst)
             raise FileNotFoundError
 
     @staticmethod
