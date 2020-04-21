@@ -22,22 +22,22 @@ Use with command-line arguments, the required mode argument is -E, possible argu
 
 Using static value
 ```sh
-python3 yaml_gen.py -E -k KEY -v NEW_VALUE
+python3 ans_gen.py -E -k KEY -v NEW_VALUE
 ```
 
 Using network address
 ```sh
-python3 yaml_gen.py -E -k KEY -n 192.168.11.0/24
+python3 ans_gen.py -E -k KEY -n 192.168.11.0/24
 ```
 
 Using port range
 ```sh
-python3 yaml_gen.py -E -k KEY -p 4198-4205
+python3 ans_gen.py -E -k KEY -p 4198-4205
 ```
 
 Using file list (CSV file or "single item per line" text file)
 ```sh
-python3 yaml_gen.py -E -k KEY -f ./ROCK_YOU.txt
+python3 ans_gen.py -E -k KEY -f ./ROCK_YOU.txt
 ```
 
 ### Generator mode  
@@ -60,7 +60,7 @@ Generator mode example start command with parameters
 * configuration file (required)
 * output folder (optional, override outpuf_folder from configuration file from general section
 ```sh
-python3 yaml_gen.py -G -c GENERATOR_CONF.yml -o .OUTPUT_FOLDER/
+python3 ans_gen.py -G -c GENERATOR_CONF.yml -o .OUTPUT_FOLDER/
 ```
 
 #### Iterator variable  
