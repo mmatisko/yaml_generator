@@ -1,3 +1,7 @@
+"""
+Main processing file, contains core logic for both editor and generator mode.
+"""
+
 from .configuration import Configuration
 from .arg_parser import AppMode, ArgumentType
 from file_io import AnsibleDirectory, is_vault_file
@@ -99,8 +103,8 @@ class DataProcessing(object):
                             if (self.__set_value_in_file(key=rule.name,
                                                          value=rule.get_value(iteration_index),
                                                          config_path=full_filepath)):
-                                file_with_folder = full_filepath[full_filepath.rfind('/0/')+2:]
-                                jinja_files.add(output_dir_with_timestamp + '/^$^$^' + file_with_folder)
+                                file_with_dir = full_filepath[full_filepath.rfind(os.path.join('', '0', ''))+2:]
+                                jinja_files.add(os.path.join(output_dir_with_timestamp, '^$^$^', file_with_dir))
                                 rules_left.remove(rule)
             else:
                 for full_jinja_path in jinja_files:

@@ -1,3 +1,8 @@
+"""
+Class representing object above ansible directory for iterating over files in dictionary, counting files and copy
+directory structure with all subdirectories and files.
+"""
+
 from .logger import Logger
 
 from datetime import datetime

@@ -1,3 +1,9 @@
+"""
+Class for pre-processing inputs with valid regex, evaluates regex in input value and replace with
+result of evaluated math operation and iteration number represented by #.
+"""
+
+
 import re
 
 

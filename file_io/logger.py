@@ -1,3 +1,8 @@
+"""
+Class for logging messages using different logging methods: Plain log, debug log, warning and error log
+to selected stream, default stream is os.stdout.
+"""
+
 from datetime import datetime
 import io
 import sys

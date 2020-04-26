@@ -1,3 +1,8 @@
+"""
+Argument parser used for parsing input arguments from CLI, checks all arguments, validate their count and fill
+arguments dictionary with these values, which are used in generator. Option -H or --help prints out argument manual.
+"""
+
 from enum import Enum
 import getopt
 import sys

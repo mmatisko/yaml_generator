@@ -1,3 +1,29 @@
+"""
+ Main source file, runs generator
+
+ Usage help:
+ ans_gen.py <mode -E/G> [options] -d <input_directory>
+  -d --dir / input config directory
+  -c --config / generating mode configuration file
+  -n --network /network ip
+  -p --port / port mapping
+  -f --file / list of variables to random pick from
+  -k --key / key of edited item
+  -v --value / value of edited item
+
+ edit mode with static value:
+    ans_gen.py -k key -v static_value
+ edit mode with value generation (ip/port/value from list)
+    ans_gen.py -k network -n 192.168.10.0/24
+    ans_gen.py -k port -p 11180-11443
+    ans_gen.py -k password -f passwords.txt
+ supported generating mode
+    ans_gen.py -c config.yml
+    ans_gen.py -c config.yml -d input_dir/
+    ans_gen.py -c config.yml -o output_dir/
+    ans_gen.py -c config.yml -o output_dir/ -d input_dir/
+"""
+
 from processing import ArgParser, ArgumentError, ArgumentModeError, DataProcessing
 from file_io import Logger
 
@@ -26,24 +52,3 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-
-# main.py
-# -d --dir / input config directory
-# -c --config / generating mode configuration file
-# -n --network /network ip
-# -p --port / port mapping
-# -f --file / list of variables to random pick from
-# -k --key / key of edited item
-# -v --value / value of edited item
-#
-# edit mode with static value:
-    # ans_gen.py -k key -v static_value
-# edit mode with value generation (ip/port/value from list)
-    # ans_gen.py -k network -n 192.168.10.0/24
-    # ans_gen.py -k port -p 11180-11443
-    # ans_gen.py -k password -f passwords.txt
-# generating mode
-    # ans_gen.py -c config.yml
-    # ans_gen.py -c config.yml -d input_dir/
-    # ans_gen.py -c config.yml -o output_dir/
-    # ans_gen.py -c config.yml -d input_dir/ -o output_dir/

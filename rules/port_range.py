@@ -1,3 +1,8 @@
+"""
+Represents Port range class, verify input value and construct object if input is valid,
+object is able to generate random values from range.
+"""
+
 from .dynamic_value import DynamicValue
 
 from random import randint
@@ -37,6 +42,9 @@ class PortRange(DynamicValue):
             random_port = randint(self.__range_begin, self.__range_end)
         self.__used_ports.add(random_port)
         return random_port
+
+    def clear_used_values(self):
+        self.__used_ports.clear()
 
 
 class InvalidPortRangeException(Exception):

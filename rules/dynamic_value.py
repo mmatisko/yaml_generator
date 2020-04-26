@@ -1,3 +1,8 @@
+"""
+DynamicValue represents basic interface used for store all values in single container.
+"""
+
+
 class DynamicValueMeta(type):
     def __instancecheck__(self, instance):
         return self.__subclasscheck__(type(instance))

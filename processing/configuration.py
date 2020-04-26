@@ -1,3 +1,9 @@
+"""
+Class represents rules from yaml file using underlying object YamlIO and VaultIO (if necessary), which uses for reading
+and writing to corresponding file. Allows generator reads and writes rules, search for specific key and set encryption
+mode to output file.
+"""
+
 from file_io import Logger, YamlIo
 
 

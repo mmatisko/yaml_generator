@@ -1,3 +1,9 @@
+"""
+Represents Network address class, verify input value and construct object if input is valid,
+object is able to generate random values from range.
+"""
+
+
 from .dynamic_value import DynamicValue
 
 from ipaddress import ip_address, ip_network

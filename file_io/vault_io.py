@@ -1,3 +1,7 @@
+"""
+Class representing IO operations above encrypted yaml file using ansible vault library.
+"""
+
 from ansible_vault import Vault
 
 

@@ -1,3 +1,8 @@
+"""
+Class representing generator rule, uses regex pre-processing if needed and generator new value using appropriate
+underlying object (Network, PortRange or ListReader).
+"""
+
 from file_io import Logger
 from .iterator_regex import IteratorRegex
 from .type_detector import DynamicTypeDetector, ListFileReader, Network, PortRange

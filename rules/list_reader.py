@@ -1,3 +1,9 @@
+"""
+Represents File contains list of items, verify input value and construct object if input is valid,
+object is able to pick random item from selected file.
+"""
+
+
 from .dynamic_value import DynamicValue
 
 from abc import abstractmethod, ABC

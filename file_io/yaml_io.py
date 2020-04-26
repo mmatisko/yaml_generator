@@ -1,3 +1,7 @@
+"""
+Class representing IO operations above plain text yaml file, using VaultIO if encrypted yaml file using ansible vault.
+"""
+
 from .vault_io import FileVault, is_vault_file
 
 import io

@@ -1,3 +1,8 @@
+"""
+Type detector class used in dynamic values to detect type of arguments,
+if arguments represents Network address, Port range or if it a file name.
+"""
+
 from .list_reader import ListFileReader
 from .network import Network
 from .port_range import PortRange
