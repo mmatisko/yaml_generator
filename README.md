@@ -7,7 +7,7 @@ Tool for generating Ansible configuration from configuration template.
 
 * [Python 3.6+](https://www.python.org/downloads/)
 * Python libs - listed in requirements.txt
-* Ansible - for using Ansible Vault feature (encrypted input/output configuration)
+* Ansible (developed with version 2.9.7) - for using Ansible Vault feature (encrypted input/output configuration)
 
 ## Installation
 No installation required. Just need to clone this repository on a destination machine and you are ready to go.
