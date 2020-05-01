@@ -36,14 +36,11 @@ class DataProcessing(object):
         else:
             return None
 
-    def __set_value_in_file(self, key: str, value: str, config_path: str) -> bool:
-        config = Configuration(path=config_path, password=self.ansible_cfg_pass)
-        config.read_rules()
+    @staticmethod
+    def __set_value_in_file(key: str, value: str, config: Configuration) -> bool:
         if config.is_valid():
-            config.read_rules()
             if config.key_exists(key):
                 config.set_value(that_key=key, new_value=value)
-                config.write_rules(config_path)
                 return True
         return False
 
@@ -61,9 +58,14 @@ class DataProcessing(object):
         for root, filename in ans_dir.iterate_directory_tree():
             full_filepath = os.path.join(root, filename)
 
+            config = Configuration(path=full_filepath, password=self.ansible_cfg_pass)
+            config.read_rules()
             if self.__set_value_in_file(key=self.params[ArgumentType.ItemKey],
                                         value=gen_rule.get_value(0),
-                                        config_path=full_filepath):
+                                        config=config):
+                if self.ansible_cfg_pass is not '':
+                    config.set_encrypted_write()
+                config.write_rules()
                 return
 
     def __generate_mode_process(self):
@@ -73,7 +75,8 @@ class DataProcessing(object):
         gen_conf = Configuration(path=self.params[ArgumentType.ConfigFile], password=self.generator_cfg_pass)
         gen_conf.read_rules()
         iterations = gen_conf.get_value('iterations')
-        jinja_files = set()
+        sensitive_files = set()
+        sensitive_configs = set()
 
         input_dir = self.params[ArgumentType.AnsibleConfigDir] if ArgumentType.AnsibleConfigDir in self.params.keys() \
             else gen_conf.get_value('input')
@@ -95,23 +98,35 @@ class DataProcessing(object):
             AnsibleDirectory.copy_directory(src=input_dir, dst=output_dir_full_path)
             ans_dir = AnsibleDirectory(directory_path=output_dir_full_path)
 
-            if len(jinja_files) is 0:
+            if len(sensitive_files) is 0:
                 for root, filename in ans_dir.iterate_directory_tree():
                     full_filepath = os.path.join(root, filename)
+                    config = Configuration(path=full_filepath, password=self.ansible_cfg_pass)
+                    config.read_rules()
                     for rule in rules:
                         if rule in rules_left:
                             if (self.__set_value_in_file(key=rule.name,
                                                          value=rule.get_value(iteration_index),
-                                                         config_path=full_filepath)):
+                                                         config=config)):
                                 file_with_dir = full_filepath[full_filepath.rfind(os.path.join('', '0', ''))+2:]
-                                jinja_files.add(os.path.join(output_dir_with_timestamp, '^$^$^', file_with_dir))
+                                sensitive_files.add(os.path.join(output_dir_with_timestamp, '^$^$^', file_with_dir))
+                                sensitive_configs.add(config)
                                 rules_left.remove(rule)
             else:
-                for full_jinja_path in jinja_files:
+                for full_jinja_path in sensitive_files:
+                    iteration_path = full_jinja_path.replace('^$^$^', str(iteration_index))
+                    config = Configuration(path=iteration_path, password=self.ansible_cfg_pass)
+                    config.read_rules()
                     for rule in rules:
                         if rule in rules_left:
-                            iteration_path = full_jinja_path.replace('^$^$^', str(iteration_index))
                             if self.__set_value_in_file(key=rule.name,
                                                         value=rule.get_value(iteration_index),
-                                                        config_path=iteration_path):
+                                                        config=config):
+                                sensitive_configs.add(config)
                                 rules_left.remove(rule)
+
+            for sensitive_config in sensitive_configs:
+                if self.ansible_cfg_pass is not '':
+                    sensitive_config.set_encrypted_write()
+                sensitive_config.write_rules()
+            sensitive_configs.clear()

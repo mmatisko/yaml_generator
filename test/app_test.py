@@ -16,7 +16,7 @@ from ans_gen import main
 
 class AppTest(unittest.TestCase):
     """ using in debug mode only """
-    # os.chdir('..')
+    os.chdir('..')
     __root_folder: str = os.getcwd()
 
     __generator_config: str = os.path.join(__root_folder, 'include', 'generator_config.yml')
@@ -98,6 +98,15 @@ class AppTest(unittest.TestCase):
                 self.assertFalse(old_value is new_value)
                 self.assertTrue(new_value in expected_values)
 
+    def __generate_test_core(self, gen_cfg: str, working_dir: str, password: str):
+        args: list = ('-G -c ' + gen_cfg + ' -d ' + working_dir).split()
+
+        sys.stdin.close()
+        sys.stdin = StringIO(password)
+        main(args)
+
+        self.assertTrue(os.path.isdir(AppTest.__output_directory))
+
     """
     Test for generator mode, generate configuration using all possible combinations of generator config 
     and input templates and verify their existence.
@@ -110,13 +119,17 @@ class AppTest(unittest.TestCase):
                         'password\npassword\n')]
 
         for gen_cfg, working_dir, password in pairs:
-            args: list = ('-G -c ' + gen_cfg + ' -d ' + working_dir).split()
+            self.__generate_test_core(gen_cfg=gen_cfg, working_dir=working_dir, password=password)
 
-            sys.stdin.close()
-            sys.stdin = StringIO(password)
-            main(args)
+    """
+    Test for generator mode, generate encrypted configuration from plain text template and verify presence of output
+    """
+    def test_app_encrypt_plain_text_template(self):
+        pairs: list = [(AppTest.__generator_config, AppTest.__testing_directory, 'password\n\n'),
+                       (AppTest.__generator_config_enc, AppTest.__testing_directory, 'password\npassword\n')]
 
-            self.assertTrue(os.path.isdir(AppTest.__output_directory))
+        for gen_cfg, working_dir, password in pairs:
+            self.__generate_test_core(gen_cfg=gen_cfg, working_dir=working_dir, password=password)
 
     """
     Test for invalid CLI arguments, like missing required arguments or invalid count of arguments.

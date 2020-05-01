@@ -16,6 +16,15 @@ class Configuration(object):
         except IOError:
             print("Unknown IO error")
 
+    def __eq__(self, other):
+        return self.__yml_object.path == other.__yml_object.path
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(self.__yml_object.path)
+
     def is_valid(self) -> bool:
         return self.__yml_object is not None and self.__yml_object.is_valid()
 
