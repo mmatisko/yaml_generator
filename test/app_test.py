@@ -107,19 +107,45 @@ class AppTest(unittest.TestCase):
 
         self.assertTrue(os.path.isdir(AppTest.__output_directory))
 
+    __pairs: list = [(__generator_config, __testing_directory, '\n\n'),
+                     (__generator_config_enc, __testing_directory, '\npassword'),
+                     (__generator_config, __testing_directory_enc, 'password\n\n'),
+                     (__generator_config_enc, __testing_directory_enc, 'password\npassword\n')]
     """
-    Test for generator mode, generate configuration using all possible combinations of generator config 
-    and input templates and verify their existence.
+    Test for generator mode, generate configuration using plain text generator config and input templates 
+    and verify existence of output.
     """
-    def test_app_generate_mode(self):
-        pairs: list = [(AppTest.__generator_config, AppTest.__testing_directory, '\n\n'),
-                       (AppTest.__generator_config_enc, AppTest.__testing_directory, '\npassword'),
-                       (AppTest.__generator_config, AppTest.__testing_directory_enc, 'password\n\n'),
-                       (AppTest.__generator_config_enc, AppTest.__testing_directory_enc,
-                        'password\npassword\n')]
+    def test_app_generate_mode_plain_plain(self):
+        self.__generate_test_core(gen_cfg=self.__generator_config,
+                                  working_dir=self.__testing_directory,
+                                  password='\n\n')
 
-        for gen_cfg, working_dir, password in pairs:
-            self.__generate_test_core(gen_cfg=gen_cfg, working_dir=working_dir, password=password)
+    """
+    Test for generator mode, generate configuration using encrypted generator config and plain text input templates 
+    and verify existence of output.
+    """
+    def test_app_generate_mode_plain_enc(self):
+        self.__generate_test_core(gen_cfg=self.__generator_config_enc,
+                                  working_dir=self.__testing_directory,
+                                  password='\npassword')
+
+    """
+    Test for generator mode, generate configuration using plain text generator config and encrypted input templates 
+    and verify existence of output.
+    """
+    def test_app_generate_mode_enc_plain(self):
+        self.__generate_test_core(gen_cfg=self.__generator_config,
+                                  working_dir=self.__testing_directory_enc,
+                                  password='password\n\n')
+
+    """
+    Test for generator mode, generate configuration using encrypted generator config and encrypted input templates 
+    and verify existence of output.
+    """
+    def test_app_generate_mode_enc_enc(self):
+        self.__generate_test_core(gen_cfg=self.__generator_config_enc,
+                                  working_dir=self.__testing_directory_enc,
+                                  password='password\npassword\n')
 
     """
     Test for generator mode, generate encrypted configuration from plain text template and verify presence of output
@@ -167,4 +193,7 @@ class AppTest(unittest.TestCase):
 if __name__ == "__main__":
     tester = AppTest()
     tester.test_app_edit_mode()
-    tester.test_app_generate_mode()
+    tester.test_app_generate_mode_plain_plain()
+    tester.test_app_generate_mode_plain_enc()
+    tester.test_app_generate_mode_enc_plain()
+    tester.test_app_generate_mode_enc_enc()
