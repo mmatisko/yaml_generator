@@ -1,0 +1,16 @@
+# General settings
+general:
+  - iterations: 250
+    name: YAML generator
+    input: ./include/template/lamp_simple_centos8/
+    output: ./output/
+
+# Static values
+static:
+  - repository: "http://github.com/bennojoy/mywebapp.git"
+
+# Dynamic values
+dynamic:
+  - ntpserver: 192.168.<#>.0/26
+    httpd_port: 2042-5142
+    upassword: ./include/test/source/passwords.txt

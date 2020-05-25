@@ -1,7 +1,8 @@
 # General settings
 general:
   - iterations: 30
-    name: YAML generator
+    threads: 6
+    name: YAML generator example configuration
     input: ./app_test/input/lamp_simple_centos8/
     output: ./app_test/output/
 

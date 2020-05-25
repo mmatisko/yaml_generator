@@ -3,9 +3,8 @@ Represents Port range class, verify input value and construct object if input is
 object is able to generate random values from range.
 """
 
+from .crypto_random import CryptoRandom
 from .dynamic_value import DynamicValue
-
-from random import randint
 
 
 class PortRange(DynamicValue):
@@ -39,7 +38,7 @@ class PortRange(DynamicValue):
     def get_random_value(self) -> int:
         random_port: int = 0
         while random_port == 0 or random_port in self.__used_ports:
-            random_port = randint(self.__range_begin, self.__range_end)
+            random_port = CryptoRandom.random_int(self.__range_begin, self.__range_end)
         self.__used_ports.add(random_port)
         return random_port
 

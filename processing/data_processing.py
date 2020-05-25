@@ -5,7 +5,7 @@ Main processing file, contains core logic for both editor and generator mode.
 from .arg_parser import AppMode, ArgumentType
 from .configuration import Configuration
 from .threadpool import Threadpool
-from file_io import AnsibleDirectory, is_vault_file
+from file_io import AnsibleDirectory, is_vault_file, Logger
 from rules import GeneratorRule, GeneratorRuleType
 
 from getpass import getpass
@@ -75,7 +75,12 @@ class DataProcessing(object):
                                                 'empty \nfor plain text output using plain text template:')
         gen_conf = Configuration(path=self.__params[ArgumentType.ConfigFile], password=self.__generator_cfg_pass)
         gen_conf.read_rules()
-        iterations = gen_conf.get_value('iterations')
+
+        iterations, name, threads, debug = [gen_conf.get_value(key) for key in ['iterations', 'name',
+                                                                                'threads', 'debug']]
+
+        Logger.write_log('Processing ' + name if name is not None else 'configuration...')
+
         sensitive_files = set()
         sensitive_configs = set()
 
@@ -93,7 +98,7 @@ class DataProcessing(object):
         for key, value in gen_conf.get_value('dynamic')[0].items():
             rules.append(GeneratorRule(name=key, value=value, rule_type=GeneratorRuleType.Dynamic))
 
-        tp = Threadpool()
+        tp = Threadpool(threads) if threads is not None else Threadpool()
         for iteration_index in range(iterations):
             rules_left = rules.copy()
             output_dir_full_path = os.path.join(output_dir_with_timestamp, str(iteration_index))
@@ -121,16 +126,11 @@ class DataProcessing(object):
                 sensitive_configs.clear()
 
             else:
-                # item = lambda ansible_cfg_pass: \
-                # DataProcessing.__next_iteration(iteration_index, rules, ansible_cfg_pass, sensitive_files)
-
-                # self.__next_iteration(iteration_index, rules, self.__ansible_cfg_pass, sensitive_files)
                 tp.add_work(DataProcessing.__next_iteration, iteration_index, rules, self.__ansible_cfg_pass,
                             sensitive_files)
         tp.start_work()
 
     @staticmethod
-    # def __next_iteration(iteration_index: int, rules: list, ansible_cfg_pass: str, sensitive_files: set):
     def __next_iteration(args):
         iteration_index = args[0]
         rules = args[1]

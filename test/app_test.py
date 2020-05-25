@@ -107,10 +107,6 @@ class AppTest(unittest.TestCase):
 
         self.assertTrue(os.path.isdir(AppTest.__output_directory))
 
-    __pairs: list = [(__generator_config, __testing_directory, '\n\n'),
-                     (__generator_config_enc, __testing_directory, '\npassword'),
-                     (__generator_config, __testing_directory_enc, 'password\n\n'),
-                     (__generator_config_enc, __testing_directory_enc, 'password\npassword\n')]
     """
     Test for generator mode, generate configuration using plain text generator config and input templates 
     and verify existence of output.

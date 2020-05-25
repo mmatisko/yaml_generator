@@ -4,11 +4,11 @@ object is able to pick random item from selected file.
 """
 
 
+from .crypto_random import CryptoRandom
 from .dynamic_value import DynamicValue
 
 from abc import abstractmethod, ABC
 import csv
-from random import randint
 from os.path import isfile
 
 
@@ -113,6 +113,6 @@ class ListFileReader(DynamicValue):
         item_count: int = self.__reader.get_item_count()
         random_item: int = -1
         while random_item == -1 or random_item in self.__used_items:
-            random_item = randint(0, item_count - 1)
+            random_item = CryptoRandom.random_int(0, item_count - 1)
         self.__used_items.add(random_item)
         return self.__reader.read_value(random_item)

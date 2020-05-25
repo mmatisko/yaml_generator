@@ -8,7 +8,7 @@ from file_io import Logger, YamlIo
 
 
 class Configuration(object):
-    def __init__(self, path: str, password: str = ''):
+    def __init__(self, path: str, password: str = None):
         self.__yml_object: YamlIo = None
         self.__rules: dict = {}
         try:

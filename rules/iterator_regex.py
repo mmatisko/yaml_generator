@@ -4,6 +4,7 @@ result of evaluated math operation and iteration number represented by #.
 """
 
 
+import ast
 import re
 
 
@@ -20,7 +21,7 @@ class IteratorRegex:
     def __parse(self) -> int:
         regex_str = self.__regex_part.strip('<>')
         regex_str = regex_str.replace('#', str(self.__iteration))
-        return int(eval(regex_str))
+        return int(ast.literal_eval(regex_str))
 
     @property
     def number(self) -> int:

@@ -11,7 +11,7 @@ from yaml import parser, scanner
 
 
 class YamlIo(object):
-    def __init__(self, path: str, password: str = ''):
+    def __init__(self, path: str, password: str = None):
         self.__path: str = path
         self.__rules: dict = {}
         self.__encrypted: bool = False

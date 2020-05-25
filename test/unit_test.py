@@ -4,8 +4,8 @@ UnitTest for testing single methods and most important modules of generator.
 
 from file_io import AnsibleDirectory, FileVault, Logger, is_vault_file
 from processing import AppMode, ArgParser, ArgumentType, Configuration
-from rules import DynamicTypeDetector, DynamicValue, IteratorRegex, ListFileReader, InvalidPortRangeException, \
-    Network, PortRange
+from rules import CryptoRandom, DynamicTypeDetector, DynamicValue, IteratorRegex, ListFileReader, \
+    InvalidPortRangeException, Network, PortRange
 
 import io
 import os.path
@@ -332,6 +332,15 @@ class UnitTest(unittest.TestCase):
 
         os.remove(dst_path)
         self.assertFalse(os.path.isfile(dst_path))
+
+    """
+        Test for verify generated int from custom wrapper above os.urandom.
+    """
+    def test_crypto_random_int(self):
+        pairs = [[0, 0], [0, 255], [250, 400], [256, 512], [256, 513]]
+        for min_, max_ in pairs:
+            result: int = CryptoRandom.random_int(min_, max_)
+            self.assertTrue(min_ <= result <= max_)
 
 
 if __name__ == '__main__':

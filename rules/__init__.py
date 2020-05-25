@@ -1,3 +1,4 @@
+from .crypto_random import CryptoRandom
 from .dynamic_value import DynamicValue
 from .generator_rule import GeneratorRuleType, GeneratorRule
 from .iterator_regex import IteratorRegex

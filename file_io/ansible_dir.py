@@ -58,7 +58,7 @@ class AnsibleDirectory(object):
     def create_dst_directory(dst: str) -> str:
         if not os.path.isdir(dst):
             try:
-                os.mkdir(dst)
+                pathlib.Path(dst).mkdir(parents=True, exist_ok=True)
             except Exception:
                 raise
         dateTimeObj = datetime.now()

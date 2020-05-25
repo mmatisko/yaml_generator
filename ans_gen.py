@@ -31,7 +31,7 @@ import sys
 
 
 def main(argv):
-    Logger.write_log('YAML Config Generator')
+    Logger.write_log('YAML Config Generator has started!')
 
     try:
         params: dict = ArgParser.parse(argv=argv)
