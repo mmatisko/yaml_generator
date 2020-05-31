@@ -12,7 +12,7 @@ class ArgParser(object):
     @staticmethod
     def parse(argv):
         try:
-            opts, args = getopt.getopt(argv, "EHGc:d:f:k:n:p:v:")
+            opts, args = getopt.getopt(argv, "EHGc:d:f:k:n:o:p:v:")
         except getopt.GetoptError:
             raise ArgumentError
 
