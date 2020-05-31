@@ -14,5 +14,5 @@
     state: latest
 
 - name: Start the ntp service
-  supervisorctl: name=chronyd state=started
+  service: name=chronyd state=started enabled=yes
   tags: ntp
