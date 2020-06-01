@@ -2,7 +2,7 @@
  Main source file, runs generator
 
  Usage help:
- ans_gen.py <mode -E/G> [options] -d <input_directory>
+ ans_gen.py <mode -e/g> [options] -d <input_directory>
   -d --dir / input config directory
   -c --config / generating mode configuration file
   -n --network /network ip

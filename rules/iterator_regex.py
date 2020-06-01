@@ -21,7 +21,8 @@ class IteratorRegex:
     def __parse(self) -> int:
         regex_str = self.__regex_part.strip('<>')
         regex_str = regex_str.replace('#', str(self.__iteration))
-        return int(ast.literal_eval(regex_str))
+        code = compile(regex_str, "<string>", "eval")
+        return int(eval(code))
 
     @property
     def number(self) -> int:

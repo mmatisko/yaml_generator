@@ -80,7 +80,7 @@ class AppTest(unittest.TestCase):
         for working_dir in {AppTest.__testing_directory,
                             AppTest.__testing_directory_enc}:
             for key, value, expected_values in args:
-                program_args = ('-E -d ' + working_dir + ' -k ' + key + ' ' + value).split()
+                program_args = ('-e -d ' + working_dir + ' -k ' + key + ' ' + value).split()
 
                 password = 'password'
                 test_conf = Configuration(path=os.path.join(working_dir, 'group_vars', 'all'), password=password)
@@ -99,7 +99,7 @@ class AppTest(unittest.TestCase):
                 self.assertTrue(new_value in expected_values)
 
     def __generate_test_core(self, gen_cfg: str, working_dir: str, password: str):
-        args: list = ('-G -c ' + gen_cfg + ' -d ' + working_dir).split()
+        args: list = ('-g -c ' + gen_cfg + ' -d ' + working_dir).split()
 
         sys.stdin.close()
         sys.stdin = StringIO(password)
@@ -157,17 +157,17 @@ class AppTest(unittest.TestCase):
     Test for invalid CLI arguments, like missing required arguments or invalid count of arguments.
     """
     def test_invalid_params(self):
-        args_mode_only: list = '-G'.split()
-        args_no_config: list = ('-G -d' + AppTest.__testing_directory).split()
+        args_mode_only: list = '-g'.split()
+        args_no_config: list = ('-g -d' + AppTest.__testing_directory).split()
 
         self.assertRaises(ValueError, main, args_no_config)
         self.assertRaises(ValueError, main, args_mode_only)
 
-        args_mode_only: list = '-E'.split()
-        args_no_key: list = '-E -v value'.split()
-        args_no_value: list = '-E -k key -d dir'.split()
-        args_duplicate_item: list = '-E -k key -k key -v value'.split()
-        args_multiple_values: list = '-E -k key -v value -f pass_file.txt'.split()
+        args_mode_only: list = '-e'.split()
+        args_no_key: list = '-e -v value'.split()
+        args_no_value: list = '-e -k key -d dir'.split()
+        args_duplicate_item: list = '-e -k key -k key -v value'.split()
+        args_multiple_values: list = '-e -k key -v value -f pass_file.txt'.split()
 
         self.assertRaises(ValueError, main, args_mode_only)
         self.assertRaises(ValueError, main, args_no_key)
@@ -179,8 +179,8 @@ class AppTest(unittest.TestCase):
     Test for missing required arguments in generator mode.
     """
     def test_empty_input_or_output(self):
-        args_no_input: list = '-G -c ' + AppTest.__generator_config + ' -d '
-        args_no_output: list = '-G -c ' + AppTest.__generator_config + ' -o '
+        args_no_input: list = '-g -c ' + AppTest.__generator_config + ' -d '
+        args_no_output: list = '-g -c ' + AppTest.__generator_config + ' -o '
 
         self.assertRaises(ValueError, main, args_no_input)
         self.assertRaises(ValueError, main, args_no_output)

@@ -23,29 +23,38 @@ class UnitTest(unittest.TestCase):
     Test for parsing generator mode arguments.
     """
     def test_arg_parse_generate(self):
-        args = ("-G -c " + UnitTest.__test_file + " -d " + UnitTest.__non_existing_test_dir).split()
-        arg_parser = ArgParser()
-        params = arg_parser.parse(args)
+        args_buffer = ["--generate --config=" + UnitTest.__test_file + " --dir=" + UnitTest.__test_file_dir +
+                       " --output=" + UnitTest.__non_existing_test_dir,
+                       "-g -c " + UnitTest.__test_file + " -d " + UnitTest.__test_file_dir + " -o"
+                       + UnitTest.__non_existing_test_dir]
+        for args in args_buffer:
+            arg_parser = ArgParser()
+            params = arg_parser.parse(args.split())
 
-        self.assertEqual(params[ArgumentType.AppMode], AppMode.Generate, 
-                         ("Invalid mode: " + str(params[ArgumentType.AppMode])))
-        self.assertEqual(params[ArgumentType.ConfigFile], UnitTest.__test_file,
-                         ("Invalid config: " + params[ArgumentType.ConfigFile]))
-        self.assertEqual(params[ArgumentType.AnsibleConfigDir], UnitTest.__non_existing_test_dir,
-                         ("Invalid Ansible directory:" + params[ArgumentType.AnsibleConfigDir]))
+            self.assertEqual(params[ArgumentType.AppMode], AppMode.Generate,
+                             ("Invalid mode: " + str(params[ArgumentType.AppMode])))
+            self.assertEqual(params[ArgumentType.ConfigFile], UnitTest.__test_file,
+                             ("Invalid config: " + params[ArgumentType.ConfigFile]))
+            self.assertEqual(params[ArgumentType.AnsibleConfigDir], UnitTest.__test_file_dir,
+                             ("Invalid Ansible directory:" + params[ArgumentType.AnsibleConfigDir]))
+            self.assertEqual(params[ArgumentType.OutputFolder], UnitTest.__non_existing_test_dir,
+                             "Invalid Output directory:" + params[ArgumentType.OutputFolder])
 
     """
     Test for parsing editor mode arguments.
     """
     def test_arg_parse_edit(self):
-        args = '-E -k mysql_port -v 3336'.split()
-        arg_parser = ArgParser()
-        params = arg_parser.parse(args)
+        args_buffer = ['-e -k mysql_port -v 3336', '--edit --key=mysql_port --value=3336']
+        for args in args_buffer:
+            arg_parser = ArgParser()
+            params = arg_parser.parse(args.split())
 
-        self.assertEqual(params[ArgumentType.AppMode], AppMode.Edit, ("Invalid mode: " +
-                                                                      str(params[ArgumentType.AppMode])))
-        self.assertEqual(params[ArgumentType.ItemKey], "mysql_port", ("Invalid item: " + params[ArgumentType.ItemKey]))
-        self.assertEqual(params[ArgumentType.ItemValue], "3336", ("Invalid value: " + params[ArgumentType.ItemValue]))
+            self.assertEqual(params[ArgumentType.AppMode], AppMode.Edit, ("Invalid mode: " +
+                                                                          str(params[ArgumentType.AppMode])))
+            self.assertEqual(params[ArgumentType.ItemKey], "mysql_port", ("Invalid item: " +
+                                                                          params[ArgumentType.ItemKey]))
+            self.assertEqual(params[ArgumentType.ItemValue], "3336", ("Invalid value: " +
+                                                                      params[ArgumentType.ItemValue]))
 
     """
     Test for logger class, writes message using all logging methods.
@@ -136,7 +145,7 @@ class UnitTest(unittest.TestCase):
     sets new value to rule, write rule and verify new value. 
     """
     def test_file_edit_str_item(self):
-        args = ('-E -k foo -v barbar -d ' + UnitTest.__test_file_dir).split()
+        args = ('-e -k foo -v barbar -d ' + UnitTest.__test_file_dir).split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
@@ -163,7 +172,7 @@ class UnitTest(unittest.TestCase):
     generates IP from valid address, finds rule in ansible directory, write new IP and check new value.
     """
     def test_file_edit_generated_ip(self):
-        args = ('-E -k ip -n 192.168.100.0/25 -d ' + UnitTest.__test_file_dir).split()
+        args = ('-e -k ip -n 192.168.100.0/25 -d ' + UnitTest.__test_file_dir).split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)
 
@@ -188,7 +197,7 @@ class UnitTest(unittest.TestCase):
        Test for ansible directory, opens valid directory and count files.
     """
     def test_ansible_dir_count(self):
-        args = ('-E -d ' + os.path.join(UnitTest.__root_folder, 'include', 'template', 'lamp_simple_centos8') +
+        args = ('-e -d ' + os.path.join(UnitTest.__root_folder, 'include', 'template', 'lamp_simple_centos8') +
                 ' -k foo -v barbar').split()
         arg_parser = ArgParser()
         params = arg_parser.parse(args)

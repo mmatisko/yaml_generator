@@ -12,19 +12,21 @@ class ArgParser(object):
     @staticmethod
     def parse(argv):
         try:
-            opts, args = getopt.getopt(argv, "EHGc:d:f:k:n:o:p:v:")
+            opts, args = getopt.getopt(argv, "ehgc:d:f:k:n:o:p:v:", ["help", "edit", "generate", "dir=",
+                                                                     "key=", "value=", "network=", "ports=", "file=",
+                                                                     "config=", "output="])
         except getopt.GetoptError:
             raise ArgumentError
 
         params: dict = {ArgumentType.AppMode: AppMode.Unknown}
 
         for opt, arg in opts:
-            if opt in ("-H", "--help"):
+            if opt in ("-h", "--help"):
                 ArgParser.__print_help()
                 sys.exit(1)
-            if opt in ("-E", "--edit"):
+            if opt in ("-e", "--edit"):
                 params[ArgumentType.AppMode] = AppMode.Edit
-            if opt in ("-G", "--generate"):
+            if opt in ("-g", "--generate"):
                 params[ArgumentType.AppMode] = AppMode.Generate
 
             if params[ArgumentType.AppMode] in [AppMode.Generate, AppMode.Edit]:
@@ -81,18 +83,18 @@ class ArgParser(object):
         print("-G, [--generate]  - generator mode, generate new configurations")
         print("")
         print("Arguments valid in both modes:")
-        print("-d, [--dir],  - source directory of input config, optional in generator mode")
+        print("-d, [--dir=],  - source directory of input config, optional in generator mode")
         print("")
         print("Arguments valid only in Editor mode:")
-        print("-k, [--key]  - name of item/rule, required argument with one of above")
-        print("-v, [--value]  - new static value of item")
-        print("-n, [--network]  - network value to generate item value")
-        print("-p, [--ports]  - port range to generate item value")
-        print("-f, [--file]  - source text file with list of item values")
+        print("-k, [--key=]  - name of item/rule, required argument with one of above")
+        print("-v, [--value=]  - new static value of item")
+        print("-n, [--network=]  - network value to generate item value")
+        print("-p, [--ports=]  - port range to generate item value")
+        print("-f, [--file=]  - source text file with list of item values")
         print("")
         print("Arguments valid only in Generator mode:")
-        print("-c, [--config]  - required, path of configuration file")
-        print("-o, [--output]  - optional, root path of generated configurations")
+        print("-c, [--config=]  - required, path of configuration file")
+        print("-o, [--output=]  - optional, root path of generated configurations")
 
 
 class AppMode(Enum):
