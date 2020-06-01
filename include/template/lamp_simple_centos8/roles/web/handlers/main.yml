@@ -1,5 +1,0 @@
----
-# Handler to handle DB tier notifications
-
-- name: restart iptables
-  service: name=iptables state=restarted

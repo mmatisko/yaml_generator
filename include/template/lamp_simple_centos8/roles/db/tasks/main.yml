@@ -25,17 +25,11 @@
 - name: Start MariaDB Service
   service: name=mariadb state=started enabled=yes
 
-- name: Start iptables
-  service: name=iptables state=started enabled=yes
+- name: Start firewalld
+  service: name=firewalld state=started enabled=yes
 
-- name: insert iptables rule
-  lineinfile:
-    dest: /etc/sysconfig/iptables
-    state: present
-    regexp: "{{ mysql_port }}"
-    insertafter: "^:OUTPUT "
-    line: "-A INPUT -p tcp  --dport {{ mysql_port }} -j  ACCEPT"
-  notify: restart iptables
+- name: insert firewalld rule
+  firewalld: port={{ mysql_port }}/tcp permanent=true state=enabled immediate=yes
 
 - name: Create Application Database
   mysql_db: name={{ dbname }} login_user={{ dbroot }} state=present

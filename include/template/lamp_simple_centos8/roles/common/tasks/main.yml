@@ -10,7 +10,7 @@
     name: |
       python3-libselinux,
       python3-libsemanage,
-      iptables
+      firewalld
     state: latest
 
 - name: Start the ntp service
