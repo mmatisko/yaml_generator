@@ -7,7 +7,7 @@ Tool for generating Ansible configuration from configuration template.
 
 * [Python 3.6+](https://www.python.org/downloads/)
 * Python libs - listed in requirements.txt
-* Ansible (developed with version 2.9.7) - for using Ansible Vault feature (encrypted input/output configuration)
+* Ansible (tested with version 2.9.x) - for using Ansible Vault feature (encrypted input/output configuration)
 
 ## Installation
 No installation required. Just need to clone this repository on a destination machine and you are ready to go.
@@ -15,29 +15,31 @@ No installation required. Just need to clone this repository on a destination ma
 ## Usage  
 Could be used in your favourite command line/terminal application.
 
+In default mode is enabled \_\_debug\_\_ flag with debug informations, to use production version (without debug info) use python interpreter with parameter -O directly or via production_ans_gen.sh script.
+
 ### Editor mode  
 
 When you want to edit you existing config (use with caution).  
-Use with command-line arguments, the required mode argument is -E, possible argument combinations are listed below:  
+Use with command-line arguments, the required mode argument is -e or --edit. Possible argument combinations are listed below:  
 
 Using static value
 ```sh
-python3 ans_gen.py -E -k KEY -v NEW_VALUE
+python3 ans_gen.py -e -k KEY -v NEW_VALUE
 ```
 
 Using network address
 ```sh
-python3 ans_gen.py -E -k KEY -n 192.168.11.0/24
+python3 ans_gen.py -e -k KEY -n 192.168.11.0/24
 ```
 
 Using port range
 ```sh
-python3 ans_gen.py -E -k KEY -p 4198-4205
+python3 ans_gen.py -e -k KEY -p 4198-4205
 ```
 
 Using file list (CSV file or "single item per line" text file)
 ```sh
-python3 ans_gen.py -E -k KEY -f ./ROCK_YOU.txt
+python3 ans_gen.py -e -k KEY -f ./ROCK_YOU.txt
 ```
 
 ### Generator mode  
@@ -47,7 +49,7 @@ This mode has two preconditions:
 1. Double-check your configuration file.
 2. Double-check first precondition once more.
 
-The required mode argument is -G. The configuration file contains three sections:  
+The required mode argument is -g or --generate. The configuration file contains three sections:  
 * General - generator config 
   * iteration count (required)
   * input folder (optional, would be overridden by cmd arg)
@@ -60,7 +62,7 @@ Generator mode example start command with parameters
 * configuration file (required)
 * output folder (optional, override outpuf_folder from configuration file from general section
 ```sh
-python3 ans_gen.py -G -c GENERATOR_CONF.yml -o .OUTPUT_FOLDER/
+python3 ans_gen.py -g -c GENERATOR_CONF.yml -o .OUTPUT_FOLDER/
 ```
 
 #### Iterator variable  
